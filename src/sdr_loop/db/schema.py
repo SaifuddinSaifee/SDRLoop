@@ -49,7 +49,8 @@ class LeadRow(Base):
     country: Mapped[str] = mapped_column(String(64), default="")
     email: Mapped[str] = mapped_column(String(256), default="")
     email_status: Mapped[str] = mapped_column(String(32), default="")
-    status: Mapped[str] = mapped_column(String(32), default="new")
+    status: Mapped[str] = mapped_column(String(32), default="new")  # outcome
+    stage: Mapped[str] = mapped_column(String(16), default="")  # last completed stage (resume)
     skip_reason: Mapped[str | None] = mapped_column(Text)
     trace_id: Mapped[str | None] = mapped_column(String(64))
     run_id: Mapped[int | None] = mapped_column(ForeignKey("runs.id"))
@@ -89,6 +90,7 @@ class DraftRow(Base):
     status: Mapped[str] = mapped_column(String(32), default="pending_approval")
     flagged: Mapped[bool] = mapped_column(default=False)
     flag_reason: Mapped[str | None] = mapped_column(Text)
+    notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

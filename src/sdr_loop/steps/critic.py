@@ -16,6 +16,7 @@ from sdr_loop.models import (
     Lead,
     Sequence,
 )
+from sdr_loop.observability import step_span
 from sdr_loop.prompts import PromptVersion, get_prompt
 from sdr_loop.steps.write import flags_for, write_sequence
 
@@ -137,13 +138,15 @@ async def write_with_critic(
     """Write, review, and on failure rewrite ONCE with the critic's notes (FR5.3, E8).
     A second failure is flagged for the human rather than retried forever."""
     flags = flags_for(lead, facts)
-    seq, ref = await write_sequence(lead, facts, writer_prompt)
-    report = await review(lead, facts, seq)
-    attempts = 1
-    if not report.passed:
-        seq, ref = await write_sequence(lead, facts, writer_prompt, revision_notes=report.notes())
-        report = await review(lead, facts, seq)
-        attempts = 2
-        if not report.passed:
-            flags.append("critic_failed")
-    return DraftOutcome(seq, report, ref, attempts, flags)
+    notes: str | None = None
+    for attempt in (1, 2):
+        with step_span("write", metadata={"attempt": attempt}):
+            seq, ref = await write_sequence(lead, facts, writer_prompt, revision_notes=notes)
+        with step_span("critic", metadata={"attempt": attempt}) as sp:
+            report = await review(lead, facts, seq)
+            sp.update(output={"passed": report.passed, "code_failures": report.code.failures})
+        if report.passed:
+            return DraftOutcome(seq, report, ref, attempt, flags)
+        notes = report.notes()
+    flags.append("critic_failed")
+    return DraftOutcome(seq, report, ref, 2, flags)

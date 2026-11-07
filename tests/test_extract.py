@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from typing import Any
@@ -184,3 +185,62 @@ async def test_client_poll_times_out_with_clear_error() -> None:
     http = httpx.AsyncClient(base_url="https://api.evaboot.com", transport=evaboot_transport(pages))
     with pytest.raises(EvabootError, match="not finished"):
         await EvabootClient("k", client=http).fetch_all("ext-9", poll_s=0, timeout_s=0)
+
+
+# ---------------------------------------------------------------- live extraction fallback (E1)
+
+
+def live_client(handler_pages: list[httpx.Response]) -> EvabootClient:
+    http = httpx.AsyncClient(
+        base_url="https://api.evaboot.com", transport=evaboot_transport(handler_pages)
+    )
+    return EvabootClient("k", client=http)
+
+
+async def test_e1_webhook_never_arrives_so_we_poll_and_ingest(repo: Repository) -> None:
+    from sdr_loop.steps.extract import run_live_extraction
+
+    run = await repo.create_run("https://www.linkedin.com/sales/search/people?q=1", "v1")
+    pages = [httpx.Response(200, json={"status": "EXECUTED", "prospects": payload()["prospects"]})]
+    await run_live_extraction(
+        repo, live_client(pages), run, "https://www.linkedin.com/sales/search/people?q=1",
+        "https://x/hook", webhook_wait_s=0, poll_s=0,
+    )  # fmt: skip
+    r = await repo.get_run(run)
+    assert r is not None and r.status == "extracted" and r.extraction_id == "ext-9"
+    assert await repo.count_leads() == 2
+
+
+async def test_e1_webhook_and_poll_both_fail_marks_run_failed_with_reason(repo: Repository) -> None:
+    from sdr_loop.steps.extract import run_live_extraction
+
+    run = await repo.create_run("u", "v1")
+    pages = [httpx.Response(202, json={"status": "EXECUTING"})] * 3
+    await run_live_extraction(
+        repo, live_client(pages), run, "https://www.linkedin.com/sales/search/people?q=1",
+        "https://x/hook", webhook_wait_s=0, poll_s=0, poll_timeout_s=0,
+    )  # fmt: skip
+    r = await repo.get_run(run)
+    assert r is not None and r.status == "failed" and "not finished" in (r.failure_reason or "")
+    assert await repo.count_leads() == 0
+
+
+async def test_webhook_arriving_during_the_wait_ends_it_without_polling(
+    repo: Repository, settings: Settings
+) -> None:
+    from sdr_loop.steps.extract import run_live_extraction
+
+    run = await repo.create_run("u", "v1")
+    client = live_client([])  # any poll would raise StopIteration: proves we never poll
+
+    async def webhook_lands() -> None:
+        await asyncio.sleep(0.01)
+        await repo.set_run_status(run, "extracted")
+
+    await asyncio.gather(
+        run_live_extraction(repo, client, run, "https://www.linkedin.com/sales/x", "https://x/h",
+                            webhook_wait_s=5, poll_s=0.005),
+        webhook_lands(),
+    )  # fmt: skip
+    r = await repo.get_run(run)
+    assert r is not None and r.status == "extracted"

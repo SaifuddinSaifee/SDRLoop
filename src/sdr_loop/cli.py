@@ -1,0 +1,190 @@
+"""sdr-loop command line: run | bot | api | prompts push."""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from pathlib import Path
+from typing import Annotated
+
+import httpx
+import typer
+
+from sdr_loop import llm
+from sdr_loop.config import Settings, get_settings
+from sdr_loop.demo import fake_gateway
+from sdr_loop.evaboot import EvabootClient
+from sdr_loop.memory import Repository
+from sdr_loop.observability import init_tracer_from_settings
+from sdr_loop.pipeline import Pipeline, RunReport, start_fixture_run
+from sdr_loop.steps.extract import ExtractReport, run_live_extraction
+from sdr_loop.steps.qualify import load_icp
+from sdr_loop.tools.offline import offline_transport
+
+app = typer.Typer(no_args_is_help=True, add_completion=False, help="Self-improving SDR agent.")
+prompts_app = typer.Typer(help="Prompt management.")
+app.add_typer(prompts_app, name="prompts")
+
+FIXTURE_CSV = Path("fixtures/evaboot_export.csv")
+
+
+def _fail(msg: str) -> typer.Exit:
+    typer.secho(msg, fg=typer.colors.RED, err=True)
+    return typer.Exit(1)
+
+
+async def _open_repo(s: Settings) -> Repository:
+    repo = Repository(s.database_url)
+    if s.database_url.startswith("sqlite"):
+        await repo.init_schema()  # local convenience; Postgres uses `alembic upgrade head`
+    return repo
+
+
+def _require_real_models(s: Settings) -> None:
+    missing = [k for k, v in (("ANTHROPIC_API_KEY", s.anthropic_api_key),
+                              ("TOGETHER_API_KEY", s.together_api_key)) if not v]  # fmt: skip
+    if missing:
+        raise _fail(f"Missing {', '.join(missing)} in .env (or use --fake-llm for a canned demo).")
+
+
+async def _always_public(_host: str) -> bool:
+    return True
+
+
+def _print_report(rep: RunReport, ext: ExtractReport | None) -> None:
+    typer.echo(f"\nRun {rep.run_id}: {rep.status}")
+    if ext:
+        skipped = ", ".join(f"{k}={v}" for k, v in sorted(ext.skipped.items())) or "none"
+        typer.echo(
+            f"  extract: {ext.total} rows, {ext.new} new leads, {ext.duplicates} duplicates, "
+            f"skipped: {skipped}"
+        )
+    typer.echo(
+        "  leads:   " + (", ".join(f"{k}={v}" for k, v in sorted(rep.counts.items())) or "none")
+    )
+    cpq = rep.cost_per_qualified_lead
+    p95 = rep.p95_latency_s
+    typer.echo(
+        f"  cost:    ${rep.cost_usd:.4f} total"
+        + (f", ${cpq:.4f} per qualified lead" if cpq is not None else "")
+        + (f"; p95 {p95:.1f}s per lead" if p95 is not None else "")
+    )
+    pending = rep.counts.get("pending_approval", 0)
+    if pending:
+        typer.echo(f"  {pending} draft(s) await approval: start `sdr-loop bot`.")
+
+
+@app.command()
+def run(
+    url: Annotated[str | None, typer.Argument(help="Sales Navigator search URL")] = None,
+    fixture: Annotated[
+        bool, typer.Option(help="Use the recorded CSV export; no Evaboot call")
+    ] = False,
+    fake_llm: Annotated[
+        bool, typer.Option(help="Canned model outputs (demo, no API keys)")
+    ] = False,
+    limit: Annotated[int | None, typer.Option(help="Process at most N leads")] = None,
+    resume: Annotated[int | None, typer.Option(help="Resume an existing run id")] = None,
+    icp_path: Annotated[Path, typer.Option("--icp")] = Path("icp.yaml"),
+) -> None:
+    """Extract, qualify, research, write and critique; drafts then await approval on Telegram."""
+    logging.basicConfig(level=logging.INFO)
+    s = get_settings()
+    if not s.dry_run:
+        raise _fail("DRY_RUN=false: v1 has no sending adapters. Refusing to start.")
+    if not (url or fixture or resume):
+        raise _fail("Give a Sales Navigator URL, --fixture, or --resume RUN_ID.")
+    if fake_llm:
+        llm.set_gateway(fake_gateway(s))
+        typer.secho("fake-llm: canned outputs, not real model quality.", fg=typer.colors.YELLOW)
+    else:
+        _require_real_models(s)
+    asyncio.run(_run(s, url, fixture, limit, resume, icp_path))
+
+
+async def _run(
+    s: Settings,
+    url: str | None,
+    fixture: bool,
+    limit: int | None,
+    resume: int | None,
+    icp_path: Path,
+) -> None:
+    tracer = init_tracer_from_settings()
+    repo = await _open_repo(s)
+    icp, icp_version = load_icp(icp_path)
+    offline = fixture or s.offline
+    http = httpx.AsyncClient(transport=offline_transport()) if offline else httpx.AsyncClient()
+    ext: ExtractReport | None = None
+    try:
+        if resume:
+            run_id = resume
+        elif fixture:
+            run_id, ext = await start_fixture_run(repo, FIXTURE_CSV, icp_version)
+        else:
+            assert url
+            if not s.evaboot_api_key:
+                raise _fail(
+                    "EVABOOT_API_KEY is not set. Use --fixture to run on the recorded export."
+                )
+            run_id = await repo.create_run(url, icp_version)
+            hook = (
+                f"{s.public_webhook_url.rstrip('/')}/webhooks/evaboot/{s.evaboot_webhook_secret}/{run_id}"
+                if s.public_webhook_url
+                else None
+            )
+            await run_live_extraction(repo, EvabootClient(s.evaboot_api_key), run_id, url, hook)
+            run = await repo.get_run(run_id)
+            if run is None or run.status != "extracted":
+                raise _fail(f"Extraction failed: {run.failure_reason if run else 'unknown'}")
+        # Offline fixtures use fake .example domains: skip the real-DNS "is this host public" check.
+        report = await Pipeline(
+            repo, s, icp, icp_version, http, _always_public if offline else None
+        ).run(run_id, limit)
+        _print_report(report, ext)
+    finally:
+        tracer.flush()
+        await http.aclose()
+        await repo.close()
+
+
+@app.command()
+def bot() -> None:
+    """Run the Telegram approval bot (polling)."""
+    from sdr_loop.bot.controller import BotController
+    from sdr_loop.bot.telegram import build_application
+
+    logging.basicConfig(level=logging.INFO)
+    s = get_settings()
+    if not (s.telegram_bot_token and s.telegram_chat_id):
+        raise _fail("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env.")
+    init_tracer_from_settings()
+    repo = Repository(s.database_url)
+    build_application(BotController(repo, s), s.telegram_bot_token).run_polling()
+
+
+@app.command()
+def api(host: str = "0.0.0.0", port: int = 8000) -> None:  # noqa: S104
+    """Run the Evaboot webhook receiver."""
+    import uvicorn
+
+    from sdr_loop.api.webhooks import create_app
+
+    s = get_settings()
+    uvicorn.run(create_app(Repository(s.database_url), s), host=host, port=port)
+
+
+@prompts_app.command("push")
+def prompts_push() -> None:
+    """Seed Langfuse with the local prompt files, labelled `production`."""
+    from sdr_loop.prompts import push_local_prompts
+
+    s = get_settings()
+    if not (s.langfuse_public_key and s.langfuse_secret_key):
+        raise _fail("Set LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY in .env.")
+    for ref in push_local_prompts():
+        typer.echo(f"pushed {ref}")
+
+
+if __name__ == "__main__":
+    app()

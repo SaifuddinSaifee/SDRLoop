@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete, select, update
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import (
 
 from sdr_loop.db.schema import (
     Base,
+    DecisionRow,
     DraftRow,
     FactRow,
     LeadRow,
@@ -246,3 +248,110 @@ class Repository:
             return (
                 await s.execute(select(DraftRow).where(DraftRow.lead_id == lead_id))
             ).scalar_one_or_none()
+
+    # ------------------------------------------------------------- pipeline
+
+    async def set_lead_progress(
+        self,
+        lead_id: int,
+        *,
+        stage: str | None = None,
+        status: str | None = None,
+        reason: str | None = None,
+    ) -> None:
+        values: dict[str, object] = {}
+        if stage is not None:
+            values["stage"] = stage
+        if status is not None:
+            values["status"] = status
+        if reason is not None:
+            values["skip_reason"] = reason
+        if values:
+            async with self.session() as s:
+                await s.execute(update(LeadRow).where(LeadRow.id == lead_id).values(**values))
+                await s.commit()
+
+    async def set_run_extraction(self, run_id: int, extraction_id: str) -> None:
+        async with self.session() as s:
+            await s.execute(update(Run).where(Run.id == run_id).values(extraction_id=extraction_id))
+            await s.commit()
+
+    async def runnable_lead_ids(self, run_id: int) -> list[int]:
+        """Leads of the run that still need work (new, in progress, or stopped by a budget)."""
+        async with self.session() as s:
+            q = (
+                select(LeadRow.id)
+                .where(LeadRow.run_id == run_id)
+                .where(LeadRow.status.in_(("new", "in_progress", "budget_exceeded", "failed")))
+                .order_by(LeadRow.id)
+            )
+            return list((await s.execute(q)).scalars())
+
+    # ------------------------------------------------------------- approvals
+
+    async def get_draft_by_id(self, draft_id: int) -> DraftRow:
+        async with self.session() as s:
+            row = await s.get(DraftRow, draft_id)
+            if row is None:
+                raise KeyError(f"draft {draft_id}")
+            return row
+
+    async def mark_notified(self, draft_id: int) -> None:
+        async with self.session() as s:
+            await s.execute(
+                update(DraftRow)
+                .where(DraftRow.id == draft_id)
+                .values(notified_at=datetime.now(UTC))
+            )
+            await s.commit()
+
+    async def drafts_with_status(
+        self, status: str, *, unnotified: bool = False, older_than: datetime | None = None
+    ) -> list[DraftRow]:
+        async with self.session() as s:
+            q = select(DraftRow).where(DraftRow.status == status).order_by(DraftRow.id)
+            if unnotified:
+                q = q.where(DraftRow.notified_at.is_(None))
+            if older_than is not None:
+                q = q.where(DraftRow.created_at < older_than)
+            return list((await s.execute(q)).scalars())
+
+    async def record_decision(
+        self,
+        draft_id: int,
+        action: str,
+        *,
+        final_text: str | None = None,
+        reason: str | None = None,
+        edit_distance: int | None = None,
+        uncited_human_claims: bool = False,
+    ) -> int:
+        """Store the decision; approve/edit move the draft to approved, reject to rejected."""
+        status = "rejected" if action == "reject" else "approved"
+        async with self.session() as s:
+            d = DecisionRow(
+                draft_id=draft_id,
+                action=action,
+                final_text=final_text,
+                reason=reason,
+                edit_distance=edit_distance,
+                uncited_human_claims=uncited_human_claims,
+            )
+            s.add(d)
+            await s.execute(update(DraftRow).where(DraftRow.id == draft_id).values(status=status))
+            await s.commit()
+            return d.id
+
+    async def get_decision(self, draft_id: int) -> DecisionRow | None:
+        async with self.session() as s:
+            q = (
+                select(DecisionRow)
+                .where(DecisionRow.draft_id == draft_id)
+                .order_by(DecisionRow.id.desc())
+            )
+            return (await s.execute(q)).scalars().first()
+
+    async def set_draft_status(self, draft_id: int, status: str) -> None:
+        async with self.session() as s:
+            await s.execute(update(DraftRow).where(DraftRow.id == draft_id).values(status=status))
+            await s.commit()

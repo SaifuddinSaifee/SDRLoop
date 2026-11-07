@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import re
 from collections import Counter
@@ -10,6 +11,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from sdr_loop.evaboot import EvabootClient, EvabootError
 from sdr_loop.memory import Repository
 from sdr_loop.models import Lead
 
@@ -129,3 +131,40 @@ async def ingest(repo: Repository, run_id: int, records: list[dict[str, Any]]) -
             continue
         rep.lead_ids.append(lead_id)
     return rep
+
+
+async def run_live_extraction(
+    repo: Repository,
+    client: EvabootClient,
+    run_id: int,
+    linkedin_url: str,
+    webhook_url: str | None,
+    *,
+    webhook_wait_s: float = 120.0,
+    poll_s: float = 5.0,
+    poll_timeout_s: float = 900.0,
+) -> None:
+    """Start an Evaboot extraction and make sure the run ends 'extracted' or 'failed' (E1).
+
+    The webhook (handled by the API process) normally fills the run. If it has not arrived after
+    `webhook_wait_s` we poll the extraction status ourselves; if that also fails the run is
+    marked failed with a clear reason. Ingest is idempotent, so a late webhook is harmless."""
+    eid = await client.start_extraction(linkedin_url, f"sdr-loop run {run_id}", webhook_url)
+    await repo.set_run_extraction(run_id, eid)
+    waited = 0.0
+    while webhook_url and waited < webhook_wait_s:
+        run = await repo.get_run(run_id)
+        if run is not None and run.status in ("extracted", "failed"):
+            return
+        await asyncio.sleep(poll_s)
+        waited += poll_s
+    try:
+        prospects = await client.fetch_all(eid, poll_s=poll_s, timeout_s=poll_timeout_s)
+    except EvabootError as e:
+        await repo.set_run_status(run_id, "failed", reason=f"extraction not completed: {e}")
+        return
+    if await repo.claim_webhook(
+        eid
+    ):  # a webhook may have won the race; ingest is idempotent anyway
+        await ingest(repo, run_id, prospects)
+    await repo.set_run_status(run_id, "extracted")

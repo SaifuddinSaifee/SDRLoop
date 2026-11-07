@@ -64,6 +64,12 @@ class Tracer(Protocol):
     def flush(self) -> None: ...
 
 
+def lead_trace_seed(lead_id: int) -> str:
+    """One trace per lead. The pipeline and the later approve/outbox steps share this seed so
+    they append to the same trace."""
+    return f"lead:{lead_id}"
+
+
 # ---------------------------------------------------------------- in-memory (tests)
 
 
@@ -116,10 +122,11 @@ class InMemoryTracer:
         tags: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Iterator[RecordedTrace]:
-        t = RecordedTrace(
-            name, uuid.uuid5(uuid.NAMESPACE_URL, seed).hex, tags or [], metadata or {}
-        )
-        self.traces.append(t)
+        trace_id = uuid.uuid5(uuid.NAMESPACE_URL, seed).hex
+        t = next((x for x in self.traces if x.trace_id == trace_id), None)
+        if t is None:  # same seed re-enters the same trace (approve/outbox come hours later)
+            t = RecordedTrace(name, trace_id, tags or [], metadata or {})
+            self.traces.append(t)
         tok = self._trace.set(t)
         try:
             yield t
@@ -274,6 +281,26 @@ def _lf_mask(*, data: Any, **_: Any) -> Any:
 
 def _str_meta(metadata: dict[str, Any] | None) -> dict[str, str]:
     return {k: str(v)[:200] for k, v in (metadata or {}).items()}
+
+
+# ---------------------------------------------------------------- step spans
+
+
+@contextmanager
+def step_span(name: str, **kw: Any) -> Iterator[SpanHandle]:
+    """A pipeline-step span that rolls up the LLM tokens and cost spent inside it (read from the
+    lead budget), so every step carries cost and tokens even though generations are children."""
+    from sdr_loop.budget import current_lead_budget
+
+    lb = current_lead_budget()
+    tokens0, usd0 = (lb.tokens, lb.spent_usd) if lb else (0, 0.0)
+    with get_tracer().span(name, **kw) as sp:
+        try:
+            yield sp
+        finally:
+            tokens = (lb.tokens - tokens0) if lb else 0
+            usd = (lb.spent_usd - usd0) if lb else 0.0
+            sp.update(usage_details={"total": tokens}, cost_details={"total": usd})
 
 
 # ---------------------------------------------------------------- global accessor
