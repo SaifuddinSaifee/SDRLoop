@@ -1,0 +1,307 @@
+Full Name,First Name,Last Name,Current Job,Company Name,Company Website,Industry,Headcount,Country,LinkedIn Profile URL,Email,Email Status
+Alex Jansen,Alex,Jansen,Founder,Echo Talent,https://echotalent.example,Marketing & Advertising,25,IE,https://www.linkedin.com/in/alex-jansen-d70c52,alex.jansen@echotalent.example,safe
+Marco Smith,Marco,Smith,Head of Outbound,Bright Growth,https://brightgrowth.example,Marketing & Advertising,25,US,https://www.linkedin.com/in/marco-smith-a78d36,marco.smith@brightgrowth.example,safe
+Sofia Jansen,Sofia,Jansen,Agency Owner,Bright Leads,https://brightleads.example,Outsourcing/Offshoring,75,NL,https://www.linkedin.com/in/sofia-jansen-fe4c28,sofia.jansen@brightleads.example,safe
+Marco Rossi,Marco,Rossi,Business Development Manager,North Pipeline,https://northpipeline.example,Marketing & Advertising,1,US,https://www.linkedin.com/in/marco-rossi-be703a,marco.rossi@northpipeline.example,safe
+Lea Muller,Lea,Muller,Marketing Intern,Echo Pipeline,https://echopipeline.example,Staffing & Recruiting,120,IE,https://www.linkedin.com/in/lea-muller-6c8cf0,lea.muller@echopipeline.example,safe
+Chloe Wilson,Chloe,Wilson,SDR Manager,Pulse Growth,https://pulsegrowth.example,Business Consulting & Services,12,BR,https://www.linkedin.com/in/chloe-wilson-0739b0,chloe.wilson@pulsegrowth.example,safe
+Maya Moreau,Maya,Moreau,Head of Growth,Apollo,https://apollo.example,Marketing & Advertising,25,ES,https://www.linkedin.com/in/maya-moreau-40f93e,maya.moreau@oakconnect.example,safe
+Lucas Smith,Lucas,Smith,Business Development Manager,Nimbus Reach,https://nimbusreach.example,Marketing & Advertising,12,DE,https://www.linkedin.com/in/lucas-smith-a45efb,lucas.smith@nimbusreach.example,riskier
+Hugo Jansen,Hugo,Jansen,Head of Growth,Vector Motors,https://vectormotors.example,Construction,40,CA,https://www.linkedin.com/in/hugo-jansen-ab44be,hugo.jansen@vectormotors.example,safe
+Lucas Clark,Lucas,Clark,CEO,Mosaic Growth,https://mosaicgrowth.example,Marketing & Advertising,4,FR,https://www.linkedin.com/in/lucas-clark-b8aea6,lucas.clark@mosaicgrowth.example,safe
+Chloe Lopez,Chloe,Lopez,Head of Outbound,Echo Reach,https://echoreach.example,Business Consulting & Services,8,US,https://www.linkedin.com/in/chloe-lopez-0f1ed4,chloe.lopez@echoreach.example,riskier
+Alex Rossi,Alex,Rossi,CEO,Nimbus Foods,https://nimbusfoods.example,Mining & Metals,25,IE,https://www.linkedin.com/in/alex-rossi-6d5ac3,alex.rossi@nimbusfoods.example,safe
+Maya Rossi,Maya,Rossi,Head of Growth,Oak Dental,https://oakdental.example,Automotive,25,FR,https://www.linkedin.com/in/maya-rossi-067559,maya.rossi@oakdental.example,safe
+Hugo Clark,Hugo,Clark,Business Development Manager,Quanta Outbound,https://quantaoutbound.example,Marketing & Advertising,4,ES,https://www.linkedin.com/in/hugo-clark-3c221d,,
+Liam Dupont,Liam,Dupont,Agency Owner,Mosaic Search,https://mosaicsearch.example,Marketing & Advertising,4,IN,https://www.linkedin.com/in/liam-dupont-45ba22,liam.dupont@mosaicsearch.example,safe
+Hugo Wilson,Hugo,Wilson,Head of Outbound,Mosaic Connect,https://mosaicconnect.example,Outsourcing/Offshoring,400,ES,https://www.linkedin.com/in/hugo-wilson-dc3056,,
+Nina Rossi,Nina,Rossi,Sales Manager,Quanta Pipeline,https://quantapipeline.example,Marketing & Advertising,40,GB,https://www.linkedin.com/in/nina-rossi-691269,nina.rossi@quantapipeline.example,safe
+Emma Moreau,Emma,Moreau,Agency Owner,Atlas Outbound,https://atlasoutbound.example,Marketing & Advertising,400,CA,https://www.linkedin.com/in/emma-moreau-2e98ef,emma.moreau@atlasoutbound.example,safe
+Hugo Martin,Hugo,Martin,Agency Owner,Oak Leads,https://oakleads.example,Marketing & Advertising,400,GB,https://www.linkedin.com/in/hugo-martin-f29d92,hugo.martin@oakleads.example,safe
+Jordan Smith,Jordan,Smith,Sales Manager,Pulse Growth,https://pulsegrowth.example,Marketing & Advertising,250,FR,https://www.linkedin.com/in/jordan-smith-8686b9,jordan.smith@pulsegrowth.example,safe
+Paul Novak,Paul,Novak,Business Development Manager,Cobalt Pipeline,https://cobaltpipeline.example,Business Consulting & Services,120,GB,https://www.linkedin.com/in/paul-novak-f68a28,paul.novak@cobaltpipeline.example,safe
+Alex Rossi,Alex,Rossi,Head of Outbound,Lemlist,https://lemlist.example,Outsourcing/Offshoring,40,FR,https://www.linkedin.com/in/alex-rossi-d7f42a,alex.rossi@cobaltoutbound.example,safe
+Hugo Clark,Hugo,Clark,Sales Manager,North Talent,https://northtalent.example,Staffing & Recruiting,25,IE,https://www.linkedin.com/in/hugo-clark-fce6da,hugo.clark@northtalent.example,safe
+Lea Lopez,Lea,Lopez,Sales Manager,Pulse Leads,https://pulseleads.example,Outsourcing/Offshoring,400,FR,https://www.linkedin.com/in/lea-lopez-e2f95b,lea.lopez@pulseleads.example,suspect
+Noah Lopez,Noah,Lopez,SDR Manager,Atlas Foods,https://atlasfoods.example,Mining & Metals,400,GB,https://www.linkedin.com/in/noah-lopez-3dd5d2,noah.lopez@atlasfoods.example,safe
+Liam Novak,Liam,Novak,Student,Summit Leads,https://summitleads.example,Business Consulting & Services,400,DE,https://www.linkedin.com/in/liam-novak-4ae30b,liam.novak@summitleads.example,safe
+Paul Smith,Paul,Smith,CEO,North Reach,https://northreach.example,Outsourcing/Offshoring,8,NL,https://www.linkedin.com/in/paul-smith-d7223f,paul.smith@northreach.example,safe
+Emma Martin,Emma,Martin,Business Development Manager,Vector Outbound,https://vectoroutbound.example,Outsourcing/Offshoring,8,BR,https://www.linkedin.com/in/emma-martin-7e7e80,emma.martin@vectoroutbound.example,safe
+Nina Weber,Nina,Weber,Talent Acquisition Lead,Atlas Outbound,https://atlasoutbound.example,Outsourcing/Offshoring,8,DE,https://www.linkedin.com/in/nina-weber-101c63,nina.weber@atlasoutbound.example,safe
+Liam Martin,Liam,Martin,Lead Generation Manager,Mosaic Search,https://mosaicsearch.example,Business Consulting & Services,400,FR,https://www.linkedin.com/in/liam-martin-4dbd7f,liam.martin@mosaicsearch.example,safe
+Anna Lopez,Anna,Lopez,Head of Outbound,Bright Reach,https://brightreach.example,Business Consulting & Services,40,DE,https://www.linkedin.com/in/anna-lopez-b04596,anna.lopez@brightreach.example,safe
+Anna Jansen,Anna,Jansen,Student,Vector Leads,https://vectorleads.example,Outsourcing/Offshoring,4,US,https://www.linkedin.com/in/anna-jansen-177c4f,anna.jansen@vectorleads.example,safe
+Paul Dupont,Paul,Dupont,Head of Outbound,Summit Reach,https://summitreach.example,Staffing & Recruiting,8,NL,https://www.linkedin.com/in/paul-dupont-b9d7c4,paul.dupont@summitreach.example,safe
+Ben Weber,Ben,Weber,Head of Outbound,Nimbus Growth,https://nimbusgrowth.example,Marketing & Advertising,250,FR,https://www.linkedin.com/in/ben-weber-50a828,ben.weber@nimbusgrowth.example,safe
+Alex Clark,Alex,Clark,Business Development Manager,Echo Connect,https://echoconnect.example,Business Consulting & Services,40,FR,https://www.linkedin.com/in/alex-clark-9baa2d,,
+Paul Brown,Paul,Brown,Agency Owner,Summit Leads,https://summitleads.example,Staffing & Recruiting,40,GB,https://www.linkedin.com/in/paul-brown-f225de,paul.brown@summitleads.example,safe
+Maya Martin,Maya,Martin,Backend Developer,Nimbus Growth,https://nimbusgrowth.example,Staffing & Recruiting,400,NL,https://www.linkedin.com/in/maya-martin-33c1ac,maya.martin@nimbusgrowth.example,safe
+Emma Petit,Emma,Petit,Business Development Manager,Mosaic Outbound,https://mosaicoutbound.example,Outsourcing/Offshoring,4,FR,https://www.linkedin.com/in/emma-petit-074c72,emma.petit@mosaicoutbound.example,safe
+Liam Jansen,Liam,Jansen,Business Development Manager,Harbor Reach,https://harborreach.example,Marketing & Advertising,40,CA,https://www.linkedin.com/in/liam-jansen-7732d0,liam.jansen@harborreach.example,safe
+Ben Weber,Ben,Weber,CEO,North Connect,https://northconnect.example,Marketing & Advertising,4,FR,https://www.linkedin.com/in/ben-weber-77144f,ben.weber@northconnect.example,safe
+Noah Jansen,Noah,Jansen,CEO,Oak Search,https://oaksearch.example,Marketing & Advertising,12,NL,https://www.linkedin.com/in/noah-jansen-61a145,noah.jansen@oaksearch.example,safe
+Paul Clark,Paul,Clark,SDR Manager,Mosaic Search,https://mosaicsearch.example,Marketing & Advertising,25,GB,https://www.linkedin.com/in/paul-clark-742522,paul.clark@mosaicsearch.example,safe
+Noah Muller,Noah,Muller,Sales Manager,Bright Outbound,https://brightoutbound.example,Outsourcing/Offshoring,40,DE,https://www.linkedin.com/in/noah-muller-9475bf,noah.muller@brightoutbound.example,safe
+Sam Novak,Sam,Novak,SDR Manager,Lumen Reach,https://lumenreach.example,Marketing & Advertising,120,PK,https://www.linkedin.com/in/sam-novak-9cc819,sam.novak@lumenreach.example,safe
+Ben Jansen,Ben,Jansen,Sales Manager,Atlas Pipeline,https://atlaspipeline.example,Outsourcing/Offshoring,75,GB,https://www.linkedin.com/in/ben-jansen-bb5e20,ben.jansen@atlaspipeline.example,safe
+Ines Petit,Ines,Petit,CEO,Quanta Outbound,https://quantaoutbound.example,Staffing & Recruiting,75,GB,https://www.linkedin.com/in/ines-petit-2025e0,ines.petit@quantaoutbound.example,safe
+Sofia Muller,Sofia,Muller,Sales Manager,Quanta Leads,https://quantaleads.example,Business Consulting & Services,40,CA,https://www.linkedin.com/in/sofia-muller-ede84a,sofia.muller@quantaleads.example,safe
+Lucas Clark,Lucas,Clark,CEO,Oak Leads,https://oakleads.example,Outsourcing/Offshoring,250,GB,https://www.linkedin.com/in/lucas-clark-1f1010,lucas.clark@oakleads.example,safe
+Emma Lopez,Emma,Lopez,Head of Outbound,Bright Talent,https://brighttalent.example,Outsourcing/Offshoring,8,ES,https://www.linkedin.com/in/emma-lopez-c7c330,emma.lopez@brighttalent.example,safe
+Tom Muller,Tom,Muller,CEO,Signal Growth,https://signalgrowth.example,Business Consulting & Services,4,GB,https://www.linkedin.com/in/tom-muller-024cc9,tom.muller@signalgrowth.example,safe
+Nina Smith,Nina,Smith,SDR Manager,Bright Leads,https://brightleads.example,Marketing & Advertising,120,US,https://www.linkedin.com/in/nina-smith-016c40,,
+Sofia Garcia,Sofia,Garcia,Sales Manager,Nimbus Growth,https://nimbusgrowth.example,Business Consulting & Services,25,CA,https://www.linkedin.com/in/sofia-garcia-970170,sofia.garcia@nimbusgrowth.example,safe
+Tom Jansen,Tom,Jansen,Software Engineer,Bright Reach,https://brightreach.example,Business Consulting & Services,120,NL,https://www.linkedin.com/in/tom-jansen-87c2b8,tom.jansen@brightreach.example,safe
+Tom Brown,Tom,Brown,Talent Acquisition Lead,Atlas Reach,https://atlasreach.example,Outsourcing/Offshoring,250,US,https://www.linkedin.com/in/tom-brown-22f427,,
+Maya Wilson,Maya,Wilson,Sales Manager,Oak Outbound,https://oakoutbound.example,Business Consulting & Services,120,US,https://www.linkedin.com/in/maya-wilson-4af2b8,maya.wilson@oakoutbound.example,safe
+Noah Dupont,Noah,Dupont,CEO,Bright Textiles,https://brighttextiles.example,Food & Beverages,400,FR,https://www.linkedin.com/in/noah-dupont-e144af,noah.dupont@brighttextiles.example,safe
+Hugo Novak,Hugo,Novak,Sales Manager,Oak Leads,https://oakleads.example,Business Consulting & Services,25,ES,https://www.linkedin.com/in/hugo-novak-9e49f1,hugo.novak@oakleads.example,suspect
+Lea Jansen,Lea,Jansen,CEO,Vector Connect,https://vectorconnect.example,Staffing & Recruiting,250,ES,https://www.linkedin.com/in/lea-jansen-8e40ee,lea.jansen@vectorconnect.example,safe
+Liam Moreau,Liam,Moreau,Sales Manager,Harbor Motors,https://harbormotors.example,Food & Beverages,250,ES,https://www.linkedin.com/in/liam-moreau-542226,liam.moreau@harbormotors.example,safe
+Marco Jansen,Marco,Jansen,Head of Outbound,Apollo,https://apollo.example,Outsourcing/Offshoring,75,IE,https://www.linkedin.com/in/marco-jansen-ceb5a8,marco.jansen@nimbusreach.example,safe
+Alex Brown,Alex,Brown,Business Development Manager,Quanta Connect,https://quantaconnect.example,Outsourcing/Offshoring,12,ES,https://www.linkedin.com/in/alex-brown-b01b8b,alex.brown@quantaconnect.example,safe
+Anna Muller,Anna,Muller,CEO,Pulse Outbound,https://pulseoutbound.example,Marketing & Advertising,120,IE,https://www.linkedin.com/in/anna-muller-6509f8,anna.muller@pulseoutbound.example,safe
+Sam Clark,Sam,Clark,Founder,Mosaic Foods,https://mosaicfoods.example,Mining & Metals,40,US,https://www.linkedin.com/in/sam-clark-337549,sam.clark@mosaicfoods.example,safe
+Alex Petit,Alex,Petit,Sales Manager,Bright Pipeline,https://brightpipeline.example,Outsourcing/Offshoring,30000,ES,https://www.linkedin.com/in/alex-petit-27d5b5,alex.petit@brightpipeline.example,safe
+Sofia Jansen,Sofia,Jansen,Business Development Manager,Harbor Outbound,https://harboroutbound.example,Outsourcing/Offshoring,8,ES,https://www.linkedin.com/in/sofia-jansen-e791ab,,
+Hugo Wilson,Hugo,Wilson,Agency Owner,Atlas Outbound,https://atlasoutbound.example,Staffing & Recruiting,8,CA,https://www.linkedin.com/in/hugo-wilson-7f3551,hugo.wilson@atlasoutbound.example,safe
+Eva Jansen,Eva,Jansen,Founder,Summit Reach,https://summitreach.example,Outsourcing/Offshoring,12,DE,https://www.linkedin.com/in/eva-jansen-b52b25,eva.jansen@summitreach.example,suspect
+Jordan Novak,Jordan,Novak,Head of Growth,Quanta Dental,https://quantadental.example,Hospitality,12,NL,https://www.linkedin.com/in/jordan-novak-7862c6,jordan.novak@quantadental.example,safe
+Lucas Brown,Lucas,Brown,Lead Generation Manager,Lumen Motors,https://lumenmotors.example,Food & Beverages,75,GB,https://www.linkedin.com/in/lucas-brown-5ba222,lucas.brown@lumenmotors.example,safe
+Alex Jansen,Alex,Jansen,Head of Growth,Mosaic Farms,https://mosaicfarms.example,Food & Beverages,25,FR,https://www.linkedin.com/in/alex-jansen-bbf4a6,alex.jansen@mosaicfarms.example,safe
+Ben Novak,Ben,Novak,Agency Owner,Mosaic Talent,https://mosaictalent.example,Staffing & Recruiting,250,FR,https://www.linkedin.com/in/ben-novak-d55173,ben.novak@mosaictalent.example,safe
+Noah Martin,Noah,Martin,Talent Acquisition Lead,Nimbus Leads,https://nimbusleads.example,Marketing & Advertising,75,DE,https://www.linkedin.com/in/noah-martin-e65138,noah.martin@nimbusleads.example,invalid
+Eva Petit,Eva,Petit,Sales Manager,Signal Search,https://signalsearch.example,Business Consulting & Services,4,US,https://www.linkedin.com/in/eva-petit-184a54,,
+Jordan Weber,Jordan,Weber,Business Development Manager,Echo Talent,https://echotalent.example,Staffing & Recruiting,4,GB,https://www.linkedin.com/in/jordan-weber-c302ef,jordan.weber@echotalent.example,safe
+Eva Petit,Eva,Petit,Sales Manager,Nimbus Dental,https://nimbusdental.example,Automotive,120,ES,https://www.linkedin.com/in/eva-petit-77fd27,eva.petit@nimbusdental.example,safe
+Alex Wilson,Alex,Wilson,Sales Manager,Oak Connect,https://oakconnect.example,Business Consulting & Services,250,PK,https://www.linkedin.com/in/alex-wilson-f249bd,alex.wilson@oakconnect.example,safe
+Anna Muller,Anna,Muller,Sales Manager,Signal Outbound,https://signaloutbound.example,Marketing & Advertising,40,IE,https://www.linkedin.com/in/anna-muller-afdc0b,anna.muller@signaloutbound.example,safe
+Sofia Garcia,Sofia,Garcia,Founder,Mosaic Builders,https://mosaicbuilders.example,Food & Beverages,4,US,https://www.linkedin.com/in/sofia-garcia-3e4ba4,sofia.garcia@mosaicbuilders.example,safe
+Maya Lopez,Maya,Lopez,Lead Generation Manager,Atlas Growth,https://atlasgrowth.example,Business Consulting & Services,120,US,https://www.linkedin.com/in/maya-lopez-517100,maya.lopez@atlasgrowth.example,safe
+Chloe Petit,Chloe,Petit,Talent Acquisition Lead,Echo Outbound,https://echooutbound.example,Staffing & Recruiting,75,NL,https://www.linkedin.com/in/chloe-petit-ebeb83,chloe.petit@echooutbound.example,safe
+Lucas Martin,Lucas,Martin,Lead Generation Manager,Harbor Growth,https://harborgrowth.example,Business Consulting & Services,75,IE,https://www.linkedin.com/in/lucas-martin-e807c8,lucas.martin@harborgrowth.example,safe
+Paul Muller,Paul,Muller,CEO,Harbor Leads,https://harborleads.example,Business Consulting & Services,12,NL,https://www.linkedin.com/in/paul-muller-4dd0ea,paul.muller@harborleads.example,safe
+Nina Brown,Nina,Brown,Student,Nimbus Outbound,https://nimbusoutbound.example,Outsourcing/Offshoring,25,CA,https://www.linkedin.com/in/nina-brown-c09689,nina.brown@nimbusoutbound.example,safe
+Liam Garcia,Liam,Garcia,Talent Acquisition Lead,Echo Search,https://echosearch.example,Outsourcing/Offshoring,1,DE,https://www.linkedin.com/in/liam-garcia-a7f974,liam.garcia@echosearch.example,safe
+Sofia Martin,Sofia,Martin,CEO,Summit Growth,https://summitgrowth.example,Staffing & Recruiting,12,NL,https://www.linkedin.com/in/sofia-martin-c20d80,sofia.martin@summitgrowth.example,riskier
+Alex Muller,Alex,Muller,Agency Owner,Oak Leads,https://oakleads.example,Business Consulting & Services,40,ES,https://www.linkedin.com/in/alex-muller-6b6fc8,alex.muller@oakleads.example,safe
+Paul Smith,Paul,Smith,Head of Outbound,Signal Leads,https://signalleads.example,Staffing & Recruiting,30000,GB,https://www.linkedin.com/in/paul-smith-abc8c2,paul.smith@signalleads.example,safe
+Noah Novak,Noah,Novak,Head of Growth,Bright Logistics,https://brightlogistics.example,Hospitality,40,IE,https://www.linkedin.com/in/noah-novak-ebd11a,noah.novak@brightlogistics.example,safe
+Sofia Dupont,Sofia,Dupont,Lead Generation Manager,Oak Outbound,https://oakoutbound.example,Outsourcing/Offshoring,5000,CA,https://www.linkedin.com/in/sofia-dupont-515abb,sofia.dupont@oakoutbound.example,safe
+Chloe Clark,Chloe,Clark,SDR Manager,North Outbound,https://northoutbound.example,Staffing & Recruiting,40,FR,https://www.linkedin.com/in/chloe-clark-ef7b12,chloe.clark@northoutbound.example,safe
+Noah Muller,Noah,Muller,Business Development Manager,Summit Outbound,https://summitoutbound.example,Outsourcing/Offshoring,120,FR,https://www.linkedin.com/in/noah-muller-fd3dca,noah.muller@summitoutbound.example,safe
+Tom Lopez,Tom,Lopez,Founder,Vector Growth,https://vectorgrowth.example,Business Consulting & Services,12,ES,https://www.linkedin.com/in/tom-lopez-3a21d2,tom.lopez@vectorgrowth.example,safe
+Sam Lopez,Sam,Lopez,SDR Manager,Oak Growth,https://oakgrowth.example,Business Consulting & Services,25,NL,https://www.linkedin.com/in/sam-lopez-ba7ed3,sam.lopez@oakgrowth.example,safe
+Tom Martin,Tom,Martin,Business Development Manager,Bright Growth,https://brightgrowth.example,Marketing & Advertising,250,US,https://www.linkedin.com/in/tom-martin-7a017b,tom.martin@brightgrowth.example,riskier
+Eva Moreau,Eva,Moreau,Head of Growth,Quanta Growth,https://quantagrowth.example,Business Consulting & Services,30000,ES,https://www.linkedin.com/in/eva-moreau-596a58,eva.moreau@quantagrowth.example,safe
+Alex Novak,Alex,Novak,Agency Owner,Nimbus Pipeline,https://nimbuspipeline.example,Outsourcing/Offshoring,8,NL,https://www.linkedin.com/in/alex-novak-c56d05,alex.novak@nimbuspipeline.example,suspect
+Paul Moreau,Paul,Moreau,Executive Assistant,Signal Connect,https://signalconnect.example,Marketing & Advertising,75,NL,https://www.linkedin.com/in/paul-moreau-d21937,paul.moreau@signalconnect.example,safe
+Emma Moreau,Emma,Moreau,CEO,Oak Textiles,https://oaktextiles.example,Mining & Metals,25,NL,https://www.linkedin.com/in/emma-moreau-dd36e6,emma.moreau@oaktextiles.example,safe
+Lucas Rossi,Lucas,Rossi,Agency Owner,Nimbus Leads,https://nimbusleads.example,Outsourcing/Offshoring,400,VN,https://www.linkedin.com/in/lucas-rossi-d393fd,lucas.rossi@nimbusleads.example,safe
+Eva Lopez,Eva,Lopez,Head of Growth,Oak Textiles,https://oaktextiles.example,Construction,12,DE,https://www.linkedin.com/in/eva-lopez-9db7fd,eva.lopez@oaktextiles.example,safe
+Eva Moreau,Eva,Moreau,CEO,Signal Outbound,https://signaloutbound.example,Marketing & Advertising,400,CA,https://www.linkedin.com/in/eva-moreau-c506d1,eva.moreau@signaloutbound.example,riskier
+Marco Lopez,Marco,Lopez,Business Development Manager,Vector Logistics,https://vectorlogistics.example,Construction,75,FR,https://www.linkedin.com/in/marco-lopez-b4f372,marco.lopez@vectorlogistics.example,safe
+Maya Dupont,Maya,Dupont,Business Development Manager,Pulse Search,https://pulsesearch.example,Outsourcing/Offshoring,8,IN,https://www.linkedin.com/in/maya-dupont-14df62,maya.dupont@pulsesearch.example,safe
+Chloe Brown,Chloe,Brown,CEO,Lumen Pipeline,https://lumenpipeline.example,Staffing & Recruiting,12,GB,https://www.linkedin.com/in/chloe-brown-6a6e44,chloe.brown@lumenpipeline.example,safe
+Jordan Jansen,Jordan,Jansen,Lead Generation Manager,Harbor Search,https://harborsearch.example,Staffing & Recruiting,12,US,https://www.linkedin.com/in/jordan-jansen-1a77d1,jordan.jansen@harborsearch.example,safe
+Jordan Clark,Jordan,Clark,Talent Acquisition Lead,Nimbus Leads,https://nimbusleads.example,Staffing & Recruiting,8,CA,https://www.linkedin.com/in/jordan-clark-3e4c85,jordan.clark@nimbusleads.example,safe
+Jordan Brown,Jordan,Brown,Head of Outbound,Atlas Growth,https://atlasgrowth.example,Business Consulting & Services,400,IE,https://www.linkedin.com/in/jordan-brown-7eccbd,jordan.brown@atlasgrowth.example,safe
+Noah Jansen,Noah,Jansen,Founder,North Foods,https://northfoods.example,Automotive,400,NL,https://www.linkedin.com/in/noah-jansen-eaa3cc,noah.jansen@northfoods.example,safe
+Ben Jansen,Ben,Jansen,SDR Manager,Cobalt Connect,https://cobaltconnect.example,Marketing & Advertising,400,DE,https://www.linkedin.com/in/ben-jansen-4f1d74,,
+Marco Garcia,Marco,Garcia,SDR Manager,Mosaic Pipeline,https://mosaicpipeline.example,Staffing & Recruiting,30000,IE,https://www.linkedin.com/in/marco-garcia-f1bc66,marco.garcia@mosaicpipeline.example,safe
+Tom Martin,Tom,Martin,Talent Acquisition Lead,Signal Reach,https://signalreach.example,Staffing & Recruiting,120,US,https://www.linkedin.com/in/tom-martin-1eca0c,tom.martin@signalreach.example,safe
+Ben Garcia,Ben,Garcia,Head of Growth,Signal Connect,https://signalconnect.example,Outsourcing/Offshoring,250,NL,https://www.linkedin.com/in/ben-garcia-7e1490,ben.garcia@signalconnect.example,suspect
+Nina Moreau,Nina,Moreau,SDR Manager,Summit Leads,https://summitleads.example,Business Consulting & Services,30000,DE,https://www.linkedin.com/in/nina-moreau-2e8912,nina.moreau@summitleads.example,safe
+Jordan Muller,Jordan,Muller,SDR Manager,Signal Pipeline,https://signalpipeline.example,Staffing & Recruiting,250,US,https://www.linkedin.com/in/jordan-muller-ad1518,jordan.muller@signalpipeline.example,safe
+Tom Martin,Tom,Martin,Sales Manager,Signal Leads,https://signalleads.example,Business Consulting & Services,12,GB,https://www.linkedin.com/in/tom-martin-ae1b83,tom.martin@signalleads.example,safe
+Chloe Weber,Chloe,Weber,Head of Outbound,Harbor Connect,https://harborconnect.example,Business Consulting & Services,75,US,https://www.linkedin.com/in/chloe-weber-ec6353,chloe.weber@harborconnect.example,safe
+Alex Martin,Alex,Martin,Agency Owner,Summit Leads,https://summitleads.example,Staffing & Recruiting,120,DE,https://www.linkedin.com/in/alex-martin-6c0dbd,alex.martin@summitleads.example,safe
+Eva Muller,Eva,Muller,CEO,Summit Reach,https://summitreach.example,Outsourcing/Offshoring,25,US,https://www.linkedin.com/in/eva-muller-bcc75e,eva.muller@summitreach.example,safe
+Tom Petit,Tom,Petit,Lead Generation Manager,Bright Steel,https://brightsteel.example,Food & Beverages,75,DE,https://www.linkedin.com/in/tom-petit-f47fe6,tom.petit@brightsteel.example,safe
+Hugo Dupont,Hugo,Dupont,Talent Acquisition Lead,Oak Farms,https://oakfarms.example,Automotive,8,GB,https://www.linkedin.com/in/hugo-dupont-3e3ae4,hugo.dupont@oakfarms.example,safe
+Sam Moreau,Sam,Moreau,Head of Growth,Bright Pipeline,https://brightpipeline.example,Staffing & Recruiting,1200,US,https://www.linkedin.com/in/sam-moreau-35b7ca,sam.moreau@brightpipeline.example,safe
+Lea Muller,Lea,Muller,Head of Outbound,Pulse Pipeline,https://pulsepipeline.example,Outsourcing/Offshoring,120,IE,https://www.linkedin.com/in/lea-muller-43ab81,lea.muller@pulsepipeline.example,suspect
+Liam Garcia,Liam,Garcia,Executive Assistant,Mosaic Pipeline,https://mosaicpipeline.example,Staffing & Recruiting,8,CA,https://www.linkedin.com/in/liam-garcia-650dbf,liam.garcia@mosaicpipeline.example,safe
+Anna Clark,Anna,Clark,Business Development Manager,Vector Reach,https://vectorreach.example,Staffing & Recruiting,8,US,https://www.linkedin.com/in/anna-clark-d25fa6,anna.clark@vectorreach.example,safe
+Sofia Jansen,Sofia,Jansen,Head of Outbound,Atlas Talent,https://atlastalent.example,Outsourcing/Offshoring,40,ES,https://www.linkedin.com/in/sofia-jansen-7a324d,sofia.jansen@atlastalent.example,safe
+Emma Weber,Emma,Weber,Student,Pulse Pipeline,https://pulsepipeline.example,Marketing & Advertising,75,US,https://www.linkedin.com/in/emma-weber-814223,emma.weber@pulsepipeline.example,safe
+Alex Dupont,Alex,Dupont,Founder,Echo Dental,https://echodental.example,Food & Beverages,75,CA,https://www.linkedin.com/in/alex-dupont-fc6cbd,alex.dupont@echodental.example,safe
+Emma Petit,Emma,Petit,Lead Generation Manager,North Builders,https://northbuilders.example,Hospitality,40,DE,https://www.linkedin.com/in/emma-petit-e6cc33,emma.petit@northbuilders.example,safe
+Maya Muller,Maya,Muller,Founder,Nimbus Foods,https://nimbusfoods.example,Retail,25,CA,https://www.linkedin.com/in/maya-muller-090e50,maya.muller@nimbusfoods.example,safe
+Sam Garcia,Sam,Garcia,Head of Growth,Pulse Pipeline,https://pulsepipeline.example,Outsourcing/Offshoring,75,NG,https://www.linkedin.com/in/sam-garcia-56655b,sam.garcia@pulsepipeline.example,safe
+Tom Weber,Tom,Weber,Business Development Manager,North Leads,https://northleads.example,Outsourcing/Offshoring,400,DE,https://www.linkedin.com/in/tom-weber-c65485,tom.weber@northleads.example,riskier
+Chloe Wilson,Chloe,Wilson,CEO,Harbor Farms,https://harborfarms.example,Automotive,75,NL,https://www.linkedin.com/in/chloe-wilson-8396e2,chloe.wilson@harborfarms.example,safe
+Chloe Wilson,Chloe,Wilson,Business Development Manager,Signal Pipeline,https://signalpipeline.example,Outsourcing/Offshoring,250,IN,https://www.linkedin.com/in/chloe-wilson-5b86f1,chloe.wilson@signalpipeline.example,safe
+Anna Clark,Anna,Clark,Agency Owner,Summit Leads,https://summitleads.example,Staffing & Recruiting,120,FR,https://www.linkedin.com/in/anna-clark-7e9f17,anna.clark@summitleads.example,safe
+Emma Clark,Emma,Clark,Sales Manager,Bright Builders,https://brightbuilders.example,Food & Beverages,75,FR,https://www.linkedin.com/in/emma-clark-e4fd51,emma.clark@brightbuilders.example,safe
+Sofia Garcia,Sofia,Garcia,Lead Generation Manager,Atlas Growth,https://atlasgrowth.example,Marketing & Advertising,250,NL,https://www.linkedin.com/in/sofia-garcia-2b6815,sofia.garcia@atlasgrowth.example,safe
+Hugo Weber,Hugo,Weber,Talent Acquisition Lead,Echo Talent,https://echotalent.example,Staffing & Recruiting,4,IE,https://www.linkedin.com/in/hugo-weber-1f0ef5,hugo.weber@echotalent.example,safe
+Marco Garcia,Marco,Garcia,Talent Acquisition Lead,Atlas Talent,https://atlastalent.example,Staffing & Recruiting,4,ES,https://www.linkedin.com/in/marco-garcia-c40353,marco.garcia@atlastalent.example,safe
+Liam Jansen,Liam,Jansen,Talent Acquisition Lead,Harbor Pipeline,https://harborpipeline.example,Staffing & Recruiting,8,NL,https://www.linkedin.com/in/liam-jansen-a5d1e2,,
+Lucas Clark,Lucas,Clark,Lead Generation Manager,Bright Dental,https://brightdental.example,Construction,400,NL,https://www.linkedin.com/in/lucas-clark-201133,lucas.clark@brightdental.example,safe
+Maya Dupont,Maya,Dupont,Agency Owner,Lumen Search,https://lumensearch.example,Outsourcing/Offshoring,25,GB,https://www.linkedin.com/in/maya-dupont-9f5f1d,maya.dupont@lumensearch.example,riskier
+Lucas Dupont,Lucas,Dupont,Talent Acquisition Lead,Signal Reach,https://signalreach.example,Business Consulting & Services,4,DE,https://www.linkedin.com/in/lucas-dupont-17d9af,lucas.dupont@signalreach.example,safe
+Lea Smith,Lea,Smith,SDR Manager,Bright Textiles,https://brighttextiles.example,Mining & Metals,400,US,https://www.linkedin.com/in/lea-smith-1815ec,lea.smith@brighttextiles.example,safe
+Eva Martin,Eva,Martin,Talent Acquisition Lead,North Reach,https://northreach.example,Staffing & Recruiting,400,GB,https://www.linkedin.com/in/eva-martin-ba2b14,eva.martin@northreach.example,safe
+Maya Clark,Maya,Clark,SDR Manager,Lumen Reach,https://lumenreach.example,Business Consulting & Services,400,VN,https://www.linkedin.com/in/maya-clark-810a48,maya.clark@lumenreach.example,safe
+Chloe Dupont,Chloe,Dupont,Sales Manager,Lemlist,https://lemlist.example,Business Consulting & Services,4,ES,https://www.linkedin.com/in/chloe-dupont-4b4a5a,chloe.dupont@brightreach.example,safe
+Chloe Smith,Chloe,Smith,Agency Owner,Vector Reach,https://vectorreach.example,Staffing & Recruiting,5000,US,https://www.linkedin.com/in/chloe-smith-023bb1,chloe.smith@vectorreach.example,safe
+Sofia Brown,Sofia,Brown,Software Engineer,Vector Leads,https://vectorleads.example,Staffing & Recruiting,40,ES,https://www.linkedin.com/in/sofia-brown-1d3758,sofia.brown@vectorleads.example,safe
+Marco Lopez,Marco,Lopez,Sales Manager,Bright Reach,https://brightreach.example,Staffing & Recruiting,40,VN,https://www.linkedin.com/in/marco-lopez-d5db10,marco.lopez@brightreach.example,safe
+Maya Martin,Maya,Martin,CEO,Signal Growth,https://signalgrowth.example,Outsourcing/Offshoring,400,FR,https://www.linkedin.com/in/maya-martin-e5f240,maya.martin@signalgrowth.example,safe
+Chloe Muller,Chloe,Muller,Student,Harbor Leads,https://harborleads.example,Staffing & Recruiting,25,FR,https://www.linkedin.com/in/chloe-muller-e76745,chloe.muller@harborleads.example,safe
+Nina Smith,Nina,Smith,Sales Manager,Lumen Growth,https://lumengrowth.example,Marketing & Advertising,12,NL,https://www.linkedin.com/in/nina-smith-2ea3ea,nina.smith@lumengrowth.example,safe
+Emma Dupont,Emma,Dupont,SDR Manager,Pulse Textiles,https://pulsetextiles.example,Food & Beverages,120,FR,https://www.linkedin.com/in/emma-dupont-7e1bab,emma.dupont@pulsetextiles.example,safe
+Emma Dupont,Emma,Dupont,Head of Growth,Mosaic Reach,https://mosaicreach.example,Outsourcing/Offshoring,30000,DE,https://www.linkedin.com/in/emma-dupont-5180de,emma.dupont@mosaicreach.example,safe
+Noah Garcia,Noah,Garcia,Lead Generation Manager,Pulse Pipeline,https://pulsepipeline.example,Staffing & Recruiting,400,GB,https://www.linkedin.com/in/noah-garcia-967d21,noah.garcia@pulsepipeline.example,safe
+Nina Garcia,Nina,Garcia,Sales Manager,Lumen Foods,https://lumenfoods.example,Hospitality,120,ES,https://www.linkedin.com/in/nina-garcia-e84f78,nina.garcia@lumenfoods.example,safe
+Maya Novak,Maya,Novak,Lead Generation Manager,Vector Growth,https://vectorgrowth.example,Staffing & Recruiting,120,NL,https://www.linkedin.com/in/maya-novak-2c6a7a,maya.novak@vectorgrowth.example,safe
+Noah Martin,Noah,Martin,Business Development Manager,Atlas Search,https://atlassearch.example,Marketing & Advertising,250,DE,https://www.linkedin.com/in/noah-martin-cd11d1,noah.martin@atlassearch.example,suspect
+Chloe Weber,Chloe,Weber,Sales Manager,Mosaic Outbound,https://mosaicoutbound.example,Outsourcing/Offshoring,120,NL,https://www.linkedin.com/in/chloe-weber-6133e4,chloe.weber@mosaicoutbound.example,safe
+Emma Dupont,Emma,Dupont,Head of Growth,Harbor Leads,https://harborleads.example,Outsourcing/Offshoring,75,FR,https://www.linkedin.com/in/emma-dupont-8f2385,emma.dupont@harborleads.example,safe
+Ben Martin,Ben,Martin,Founder,Lumen Builders,https://lumenbuilders.example,Construction,8,DE,https://www.linkedin.com/in/ben-martin-5d62b9,ben.martin@lumenbuilders.example,safe
+Ben Lopez,Ben,Lopez,Founder,Echo Farms,https://echofarms.example,Construction,12,NL,https://www.linkedin.com/in/ben-lopez-02f545,ben.lopez@echofarms.example,safe
+Emma Lopez,Emma,Lopez,Head of Growth,Signal Connect,https://signalconnect.example,Marketing & Advertising,1,IE,https://www.linkedin.com/in/emma-lopez-35889d,emma.lopez@signalconnect.example,safe
+Paul Novak,Paul,Novak,Talent Acquisition Lead,Lumen Talent,https://lumentalent.example,Business Consulting & Services,250,CA,https://www.linkedin.com/in/paul-novak-0fda4b,,
+Maya Dupont,Maya,Dupont,Business Development Manager,Nimbus Growth,https://nimbusgrowth.example,Outsourcing/Offshoring,25,US,https://www.linkedin.com/in/maya-dupont-055b3a,maya.dupont@nimbusgrowth.example,safe
+Ines Petit,Ines,Petit,Business Development Manager,Pulse Talent,https://pulsetalent.example,Staffing & Recruiting,400,GB,https://www.linkedin.com/in/ines-petit-9df154,ines.petit@pulsetalent.example,safe
+Tom Rossi,Tom,Rossi,Founder,North Search,https://northsearch.example,Outsourcing/Offshoring,75,ES,https://www.linkedin.com/in/tom-rossi-3d760f,tom.rossi@northsearch.example,safe
+Tom Brown,Tom,Brown,Head of Growth,Vector Leads,https://vectorleads.example,Staffing & Recruiting,12,US,https://www.linkedin.com/in/tom-brown-4d639f,tom.brown@vectorleads.example,safe
+Chloe Smith,Chloe,Smith,Lead Generation Manager,Quanta Foods,https://quantafoods.example,Food & Beverages,400,FR,https://www.linkedin.com/in/chloe-smith-e2d1f9,chloe.smith@quantafoods.example,safe
+Maya Moreau,Maya,Moreau,Business Development Manager,Summit Growth,https://summitgrowth.example,Outsourcing/Offshoring,40,ES,https://www.linkedin.com/in/maya-moreau-2ceee9,maya.moreau@summitgrowth.example,safe
+Sofia Novak,Sofia,Novak,Lead Generation Manager,Cobalt Growth,https://cobaltgrowth.example,Outsourcing/Offshoring,4,CA,https://www.linkedin.com/in/sofia-novak-773db5,sofia.novak@cobaltgrowth.example,safe
+Chloe Dupont,Chloe,Dupont,Lead Generation Manager,Nimbus Reach,https://nimbusreach.example,Marketing & Advertising,1200,ES,https://www.linkedin.com/in/chloe-dupont-ee3749,chloe.dupont@nimbusreach.example,safe
+Maya Jansen,Maya,Jansen,CEO,Oak Search,https://oaksearch.example,Staffing & Recruiting,120,GB,https://www.linkedin.com/in/maya-jansen-6ce5ad,maya.jansen@oaksearch.example,safe
+Emma Muller,Emma,Muller,Agency Owner,Nimbus Pipeline,https://nimbuspipeline.example,Staffing & Recruiting,1,DE,https://www.linkedin.com/in/emma-muller-ebfc22,emma.muller@nimbuspipeline.example,safe
+Noah Smith,Noah,Smith,Agency Owner,Cobalt Builders,https://cobaltbuilders.example,Food & Beverages,12,DE,https://www.linkedin.com/in/noah-smith-2895a5,noah.smith@cobaltbuilders.example,safe
+Lea Rossi,Lea,Rossi,Agency Owner,Signal Growth,https://signalgrowth.example,Business Consulting & Services,120,US,https://www.linkedin.com/in/lea-rossi-b48eeb,,
+Eva Novak,Eva,Novak,Founder,Summit Leads,https://summitleads.example,Staffing & Recruiting,8,IE,https://www.linkedin.com/in/eva-novak-ee75fc,eva.novak@summitleads.example,safe
+Ben Novak,Ben,Novak,Talent Acquisition Lead,Oak Growth,https://oakgrowth.example,Outsourcing/Offshoring,400,NG,https://www.linkedin.com/in/ben-novak-a35e20,ben.novak@oakgrowth.example,safe
+Lucas Novak,Lucas,Novak,Talent Acquisition Lead,Oak Outbound,https://oakoutbound.example,Business Consulting & Services,75,FR,https://www.linkedin.com/in/lucas-novak-431050,lucas.novak@oakoutbound.example,safe
+Ines Novak,Ines,Novak,Business Development Manager,Quanta Leads,https://quantaleads.example,Marketing & Advertising,1200,DE,https://www.linkedin.com/in/ines-novak-6804a5,ines.novak@quantaleads.example,safe
+Nina Lopez,Nina,Lopez,Business Development Manager,Lumen Growth,https://lumengrowth.example,Outsourcing/Offshoring,75,US,https://www.linkedin.com/in/nina-lopez-ff0cfa,nina.lopez@lumengrowth.example,safe
+Noah Moreau,Noah,Moreau,Executive Assistant,Harbor Reach,https://harborreach.example,Outsourcing/Offshoring,250,IE,https://www.linkedin.com/in/noah-moreau-97f874,noah.moreau@harborreach.example,safe
+Jordan Brown,Jordan,Brown,Talent Acquisition Lead,Signal Outbound,https://signaloutbound.example,Marketing & Advertising,40,VN,https://www.linkedin.com/in/jordan-brown-9ec1d0,jordan.brown@signaloutbound.example,safe
+Ines Novak,Ines,Novak,Talent Acquisition Lead,Atlas Connect,https://atlasconnect.example,Business Consulting & Services,1200,FR,https://www.linkedin.com/in/ines-novak-00345f,ines.novak@atlasconnect.example,safe
+Ines Martin,Ines,Martin,Head of Outbound,Signal Growth,https://signalgrowth.example,Marketing & Advertising,8,IE,https://www.linkedin.com/in/ines-martin-0e446b,ines.martin@signalgrowth.example,safe
+Sofia Brown,Sofia,Brown,Executive Assistant,Bright Pipeline,https://brightpipeline.example,Staffing & Recruiting,75,US,https://www.linkedin.com/in/sofia-brown-c704ca,sofia.brown@brightpipeline.example,safe
+Lucas Novak,Lucas,Novak,Software Engineer,Atlas Outbound,https://atlasoutbound.example,Outsourcing/Offshoring,4,US,https://www.linkedin.com/in/lucas-novak-6b6448,lucas.novak@atlasoutbound.example,safe
+Lucas Dupont,Lucas,Dupont,Head of Outbound,Atlas Pipeline,https://atlaspipeline.example,Marketing & Advertising,40,GB,https://www.linkedin.com/in/lucas-dupont-1a6d9c,lucas.dupont@atlaspipeline.example,safe
+Ben Muller,Ben,Muller,Business Development Manager,Pulse Logistics,https://pulselogistics.example,Retail,120,DE,https://www.linkedin.com/in/ben-muller-8dbeec,ben.muller@pulselogistics.example,safe
+Ben Petit,Ben,Petit,Sales Manager,Oak Connect,https://oakconnect.example,Marketing & Advertising,25,FR,https://www.linkedin.com/in/ben-petit-4ddbe3,ben.petit@oakconnect.example,safe
+Sam Lopez,Sam,Lopez,SDR Manager,Summit Search,https://summitsearch.example,Business Consulting & Services,1200,US,https://www.linkedin.com/in/sam-lopez-d36a5f,sam.lopez@summitsearch.example,safe
+Emma Martin,Emma,Martin,Head of Growth,Lemlist,https://lemlist.example,Marketing & Advertising,12,US,https://www.linkedin.com/in/emma-martin-d7d835,emma.martin@quantaconnect.example,safe
+Ines Muller,Ines,Muller,Talent Acquisition Lead,Cobalt Connect,https://cobaltconnect.example,Staffing & Recruiting,120,DE,https://www.linkedin.com/in/ines-muller-bbcf03,,
+Tom Lopez,Tom,Lopez,Business Development Manager,Vector Foods,https://vectorfoods.example,Construction,75,NL,https://www.linkedin.com/in/tom-lopez-cd2971,tom.lopez@vectorfoods.example,safe
+Hugo Brown,Hugo,Brown,Lead Generation Manager,North Logistics,https://northlogistics.example,Hospitality,8,FR,https://www.linkedin.com/in/hugo-brown-1d1bd3,hugo.brown@northlogistics.example,safe
+Sam Dupont,Sam,Dupont,CEO,Vector Pipeline,https://vectorpipeline.example,Staffing & Recruiting,8,ES,https://www.linkedin.com/in/sam-dupont-1e43bb,sam.dupont@vectorpipeline.example,safe
+Chloe Lopez,Chloe,Lopez,Founder,Harbor Outbound,https://harboroutbound.example,Business Consulting & Services,400,FR,https://www.linkedin.com/in/chloe-lopez-083b9b,chloe.lopez@harboroutbound.example,safe
+Chloe Smith,Chloe,Smith,Founder,Skrapp,https://skrapp.example,Business Consulting & Services,400,ES,https://www.linkedin.com/in/chloe-smith-197239,chloe.smith@harborleads.example,safe
+Emma Clark,Emma,Clark,Head of Outbound,Summit Motors,https://summitmotors.example,Mining & Metals,120,IE,https://www.linkedin.com/in/emma-clark-69c5a7,emma.clark@summitmotors.example,safe
+Sofia Moreau,Sofia,Moreau,Business Development Manager,Oak Leads,https://oakleads.example,Marketing & Advertising,120,FR,https://www.linkedin.com/in/sofia-moreau-2eab8d,sofia.moreau@oakleads.example,safe
+Liam Moreau,Liam,Moreau,SDR Manager,Harbor Reach,https://harborreach.example,Outsourcing/Offshoring,1,FR,https://www.linkedin.com/in/liam-moreau-e68e95,liam.moreau@harborreach.example,safe
+Noah Jansen,Noah,Jansen,Business Development Manager,Echo Talent,https://echotalent.example,Outsourcing/Offshoring,40,ES,https://www.linkedin.com/in/noah-jansen-1a4bf2,noah.jansen@echotalent.example,safe
+Marco Muller,Marco,Muller,Executive Assistant,Quanta Leads,https://quantaleads.example,Staffing & Recruiting,120,FR,https://www.linkedin.com/in/marco-muller-8007fe,marco.muller@quantaleads.example,safe
+Emma Muller,Emma,Muller,Head of Growth,Echo Leads,https://echoleads.example,Marketing & Advertising,1,ES,https://www.linkedin.com/in/emma-muller-4d4aa4,emma.muller@echoleads.example,safe
+Ben Moreau,Ben,Moreau,Head of Growth,Bright Connect,https://brightconnect.example,Marketing & Advertising,12,FR,https://www.linkedin.com/in/ben-moreau-487a6a,ben.moreau@brightconnect.example,safe
+Sofia Wilson,Sofia,Wilson,Agency Owner,Echo Leads,https://echoleads.example,Marketing & Advertising,75,IE,https://www.linkedin.com/in/sofia-wilson-3653f9,sofia.wilson@echoleads.example,safe
+Lea Martin,Lea,Martin,SDR Manager,Pulse Outbound,https://pulseoutbound.example,Marketing & Advertising,250,CA,https://www.linkedin.com/in/lea-martin-d6356f,lea.martin@pulseoutbound.example,invalid
+Sam Martin,Sam,Martin,Head of Outbound,Cobalt Leads,https://cobaltleads.example,Business Consulting & Services,30000,FR,https://www.linkedin.com/in/sam-martin-321af1,sam.martin@cobaltleads.example,safe
+Alex Martin,Alex,Martin,Agency Owner,Echo Growth,https://echogrowth.example,Business Consulting & Services,25,IE,https://www.linkedin.com/in/alex-martin-366a82,alex.martin@echogrowth.example,safe
+Hugo Moreau,Hugo,Moreau,SDR Manager,Atlas Outbound,https://atlasoutbound.example,Staffing & Recruiting,400,NL,https://www.linkedin.com/in/hugo-moreau-723284,hugo.moreau@atlasoutbound.example,safe
+Sofia Martin,Sofia,Martin,Sales Manager,Quanta Pipeline,https://quantapipeline.example,Business Consulting & Services,4,ES,https://www.linkedin.com/in/sofia-martin-11d86f,sofia.martin@quantapipeline.example,safe
+Nina Lopez,Nina,Lopez,Talent Acquisition Lead,Summit Connect,https://summitconnect.example,Business Consulting & Services,4,GB,https://www.linkedin.com/in/nina-lopez-c87573,nina.lopez@summitconnect.example,safe
+Noah Brown,Noah,Brown,Agency Owner,Summit Talent,https://summittalent.example,Staffing & Recruiting,25,ES,https://www.linkedin.com/in/noah-brown-3e356c,noah.brown@summittalent.example,riskier
+Alex Rossi,Alex,Rossi,Lead Generation Manager,Lumen Connect,https://lumenconnect.example,Marketing & Advertising,120,NL,https://www.linkedin.com/in/alex-rossi-9745c2,alex.rossi@lumenconnect.example,safe
+Chloe Martin,Chloe,Martin,Agency Owner,Pulse Pipeline,https://pulsepipeline.example,Outsourcing/Offshoring,75,FR,https://www.linkedin.com/in/chloe-martin-1ba4f4,chloe.martin@pulsepipeline.example,safe
+Maya Jansen,Maya,Jansen,Agency Owner,Cobalt Connect,https://cobaltconnect.example,Marketing & Advertising,4,DE,https://www.linkedin.com/in/maya-jansen-fa84c8,maya.jansen@cobaltconnect.example,safe
+Hugo Jansen,Hugo,Jansen,Talent Acquisition Lead,North Farms,https://northfarms.example,Construction,40,US,https://www.linkedin.com/in/hugo-jansen-ad7cda,hugo.jansen@northfarms.example,safe
+Nina Brown,Nina,Brown,Talent Acquisition Lead,Vector Connect,https://vectorconnect.example,Outsourcing/Offshoring,400,GB,https://www.linkedin.com/in/nina-brown-5768ea,,
+Jordan Wilson,Jordan,Wilson,Talent Acquisition Lead,Lumen Outbound,https://lumenoutbound.example,Business Consulting & Services,75,IE,https://www.linkedin.com/in/jordan-wilson-4c866f,jordan.wilson@lumenoutbound.example,safe
+Ben Novak,Ben,Novak,Agency Owner,Vector Outbound,https://vectoroutbound.example,Outsourcing/Offshoring,400,DE,https://www.linkedin.com/in/ben-novak-604fb6,,
+Anna Smith,Anna,Smith,Founder,Atlas Motors,https://atlasmotors.example,Construction,250,FR,https://www.linkedin.com/in/anna-smith-e0c0cf,anna.smith@atlasmotors.example,safe
+Lea Lopez,Lea,Lopez,Lead Generation Manager,North Pipeline,https://northpipeline.example,Staffing & Recruiting,25,FR,https://www.linkedin.com/in/lea-lopez-dcf06d,lea.lopez@northpipeline.example,safe
+Jordan Petit,Jordan,Petit,Head of Growth,Atlas Talent,https://atlastalent.example,Outsourcing/Offshoring,40,NG,https://www.linkedin.com/in/jordan-petit-49824e,jordan.petit@atlastalent.example,safe
+Noah Petit,Noah,Petit,Agency Owner,Signal Search,https://signalsearch.example,Outsourcing/Offshoring,250,CA,https://www.linkedin.com/in/noah-petit-91d3ec,,
+Tom Dupont,Tom,Dupont,Founder,Oak Talent,https://oaktalent.example,Staffing & Recruiting,8,FR,https://www.linkedin.com/in/tom-dupont-a9de24,tom.dupont@oaktalent.example,safe
+Ben Smith,Ben,Smith,Business Development Manager,Mosaic Textiles,https://mosaictextiles.example,Hospitality,40,DE,https://www.linkedin.com/in/ben-smith-2cfa4f,ben.smith@mosaictextiles.example,safe
+Marco Martin,Marco,Martin,Lead Generation Manager,Skrapp,https://skrapp.example,Marketing & Advertising,8,ES,https://www.linkedin.com/in/marco-martin-cf2e15,marco.martin@vectorreach.example,safe
+Hugo Novak,Hugo,Novak,Founder,Bright Foods,https://brightfoods.example,Mining & Metals,4,GB,https://www.linkedin.com/in/hugo-novak-c72448,hugo.novak@brightfoods.example,safe
+Lucas Lopez,Lucas,Lopez,Executive Assistant,Quanta Pipeline,https://quantapipeline.example,Staffing & Recruiting,12,GB,https://www.linkedin.com/in/lucas-lopez-e865ef,lucas.lopez@quantapipeline.example,safe
+Anna Smith,Anna,Smith,Lead Generation Manager,Harbor Leads,https://harborleads.example,Marketing & Advertising,25,CA,https://www.linkedin.com/in/anna-smith-4238e1,anna.smith@harborleads.example,safe
+Paul Martin,Paul,Martin,Head of Outbound,Atlas Pipeline,https://atlaspipeline.example,Staffing & Recruiting,4,DE,https://www.linkedin.com/in/paul-martin-380a05,paul.martin@atlaspipeline.example,safe
+Sofia Brown,Sofia,Brown,Executive Assistant,Lumen Reach,https://lumenreach.example,Business Consulting & Services,12,IE,https://www.linkedin.com/in/sofia-brown-7e3dfa,sofia.brown@lumenreach.example,safe
+Paul Muller,Paul,Muller,Head of Outbound,Echo Search,https://echosearch.example,Outsourcing/Offshoring,120,ES,https://www.linkedin.com/in/paul-muller-a4dc5e,,
+Alex Muller,Alex,Muller,Agency Owner,Signal Talent,https://signaltalent.example,Staffing & Recruiting,75,CA,https://www.linkedin.com/in/alex-muller-d688d0,alex.muller@signaltalent.example,safe
+Maya Petit,Maya,Petit,SDR Manager,Skrapp,https://skrapp.example,Business Consulting & Services,400,DE,https://www.linkedin.com/in/maya-petit-917c3f,maya.petit@quantasearch.example,safe
+Chloe Lopez,Chloe,Lopez,Head of Outbound,Bright Logistics,https://brightlogistics.example,Mining & Metals,120,FR,https://www.linkedin.com/in/chloe-lopez-15a7e5,chloe.lopez@brightlogistics.example,safe
+Noah Weber,Noah,Weber,Talent Acquisition Lead,Summit Growth,https://summitgrowth.example,Business Consulting & Services,25,VN,https://www.linkedin.com/in/noah-weber-5dada8,noah.weber@summitgrowth.example,safe
+Ines Lopez,Ines,Lopez,Lead Generation Manager,Atlas Outbound,https://atlasoutbound.example,Business Consulting & Services,1,DE,https://www.linkedin.com/in/ines-lopez-408a8c,ines.lopez@atlasoutbound.example,safe
+Tom Clark,Tom,Clark,Lead Generation Manager,Nimbus Pipeline,https://nimbuspipeline.example,Staffing & Recruiting,250,FR,https://www.linkedin.com/in/tom-clark-047501,tom.clark@nimbuspipeline.example,safe
+Nina Weber,Nina,Weber,Agency Owner,Oak Pipeline,https://oakpipeline.example,Outsourcing/Offshoring,25,DE,https://www.linkedin.com/in/nina-weber-af76fb,nina.weber@oakpipeline.example,safe
+Maya Moreau,Maya,Moreau,Sales Manager,Bright Dental,https://brightdental.example,Mining & Metals,40,GB,https://www.linkedin.com/in/maya-moreau-9c5eed,maya.moreau@brightdental.example,safe
+Marco Brown,Marco,Brown,Agency Owner,Quanta Growth,https://quantagrowth.example,Staffing & Recruiting,1,CA,https://www.linkedin.com/in/marco-brown-4f26fd,marco.brown@quantagrowth.example,safe
+Liam Petit,Liam,Petit,Business Development Manager,Vector Talent,https://vectortalent.example,Outsourcing/Offshoring,120,DE,https://www.linkedin.com/in/liam-petit-4d4581,liam.petit@vectortalent.example,safe
+Anna Rossi,Anna,Rossi,Head of Outbound,Atlas Leads,https://atlasleads.example,Staffing & Recruiting,8,CA,https://www.linkedin.com/in/anna-rossi-afcc3d,,
+Chloe Muller,Chloe,Muller,SDR Manager,Harbor Talent,https://harbortalent.example,Outsourcing/Offshoring,40,DE,https://www.linkedin.com/in/chloe-muller-e0f8be,chloe.muller@harbortalent.example,safe
+Lea Petit,Lea,Petit,Business Development Manager,Cobalt Logistics,https://cobaltlogistics.example,Automotive,40,GB,https://www.linkedin.com/in/lea-petit-fd56e3,lea.petit@cobaltlogistics.example,safe
+Alex Martin,Alex,Martin,Founder,Bright Outbound,https://brightoutbound.example,Marketing & Advertising,1200,GB,https://www.linkedin.com/in/alex-martin-ba105d,alex.martin@brightoutbound.example,safe
+Hugo Clark,Hugo,Clark,Head of Outbound,Summit Logistics,https://summitlogistics.example,Construction,4,NL,https://www.linkedin.com/in/hugo-clark-07efb1,hugo.clark@summitlogistics.example,safe
+Chloe Lopez,Chloe,Lopez,Lead Generation Manager,Harbor Builders,https://harborbuilders.example,Automotive,75,NL,https://www.linkedin.com/in/chloe-lopez-e0a066,chloe.lopez@harborbuilders.example,safe
+Emma Muller,Emma,Muller,Head of Growth,Bright Reach,https://brightreach.example,Marketing & Advertising,75,IE,https://www.linkedin.com/in/emma-muller-1fc0ac,,
+Nina Weber,Nina,Weber,Student,Pulse Connect,https://pulseconnect.example,Outsourcing/Offshoring,75,DE,https://www.linkedin.com/in/nina-weber-9a882f,nina.weber@pulseconnect.example,safe
+Ines Smith,Ines,Smith,CEO,Quanta Pipeline,https://quantapipeline.example,Outsourcing/Offshoring,400,FR,https://www.linkedin.com/in/ines-smith-4ab1ad,ines.smith@quantapipeline.example,safe
+Emma Novak,Emma,Novak,Backend Developer,Vector Connect,https://vectorconnect.example,Marketing & Advertising,120,ES,https://www.linkedin.com/in/emma-novak-71e540,emma.novak@vectorconnect.example,safe
+Tom Jansen,Tom,Jansen,Business Development Manager,Quanta Connect,https://quantaconnect.example,Outsourcing/Offshoring,4,FR,https://www.linkedin.com/in/tom-jansen-108238,tom.jansen@quantaconnect.example,safe
+Lea Novak,Lea,Novak,Business Development Manager,Signal Steel,https://signalsteel.example,Hospitality,120,FR,https://www.linkedin.com/in/lea-novak-1d6e54,lea.novak@signalsteel.example,safe
+Jordan Petit,Jordan,Petit,CEO,Harbor Dental,https://harbordental.example,Hospitality,40,NL,https://www.linkedin.com/in/jordan-petit-776706,jordan.petit@harbordental.example,safe
+Liam Clark,Liam,Clark,Head of Outbound,Mosaic Builders,https://mosaicbuilders.example,Automotive,75,GB,https://www.linkedin.com/in/liam-clark-f832c9,liam.clark@mosaicbuilders.example,safe
+Ben Garcia,Ben,Garcia,SDR Manager,North Pipeline,https://northpipeline.example,Business Consulting & Services,400,FR,https://www.linkedin.com/in/ben-garcia-605d9c,,
+Marco Dupont,Marco,Dupont,Head of Growth,Nimbus Reach,https://nimbusreach.example,Business Consulting & Services,8,CA,https://www.linkedin.com/in/marco-dupont-089e2a,marco.dupont@nimbusreach.example,safe
+Tom Lopez,Tom,Lopez,Head of Outbound,Summit Search,https://summitsearch.example,Business Consulting & Services,75,NG,https://www.linkedin.com/in/tom-lopez-b872de,tom.lopez@summitsearch.example,safe
+Jordan Muller,Jordan,Muller,Sales Manager,Harbor Leads,https://harborleads.example,Marketing & Advertising,120,IE,https://www.linkedin.com/in/jordan-muller-e4d859,jordan.muller@harborleads.example,safe
+Ben Muller,Ben,Muller,Sales Manager,Apollo,https://apollo.example,Business Consulting & Services,8,NL,https://www.linkedin.com/in/ben-muller-62764b,ben.muller@cobaltsearch.example,safe
+Noah Smith,Noah,Smith,SDR Manager,Summit Steel,https://summitsteel.example,Automotive,120,IE,https://www.linkedin.com/in/noah-smith-c57f62,noah.smith@summitsteel.example,safe
+Ben Dupont,Ben,Dupont,CEO,North Growth,https://northgrowth.example,Marketing & Advertising,40,CA,https://www.linkedin.com/in/ben-dupont-1444e7,ben.dupont@northgrowth.example,safe
+Liam Clark,Liam,Clark,Student,Nimbus Talent,https://nimbustalent.example,Outsourcing/Offshoring,25,GB,https://www.linkedin.com/in/liam-clark-36b7a0,liam.clark@nimbustalent.example,safe
+Hugo Rossi,Hugo,Rossi,Head of Outbound,Harbor Reach,https://harborreach.example,Outsourcing/Offshoring,40,CA,https://www.linkedin.com/in/hugo-rossi-01ee5a,hugo.rossi@harborreach.example,safe
+Emma Muller,Emma,Muller,Business Development Manager,Atlas Search,https://atlassearch.example,Outsourcing/Offshoring,5000,NL,https://www.linkedin.com/in/emma-muller-836e7a,emma.muller@atlassearch.example,safe
+Eva Martin,Eva,Martin,Talent Acquisition Lead,North Growth,https://northgrowth.example,Business Consulting & Services,12,CA,https://www.linkedin.com/in/eva-martin-b1dd0a,eva.martin@northgrowth.example,safe
+Hugo Brown,Hugo,Brown,SDR Manager,Bright Talent,https://brighttalent.example,Outsourcing/Offshoring,400,NL,https://www.linkedin.com/in/hugo-brown-7d2817,hugo.brown@brighttalent.example,safe
+Chloe Lopez,Chloe,Lopez,Business Development Manager,Harbor Search,https://harborsearch.example,Business Consulting & Services,4,NL,https://www.linkedin.com/in/chloe-lopez-64f79b,chloe.lopez@harborsearch.example,safe
+Eva Clark,Eva,Clark,Sales Manager,Summit Growth,https://summitgrowth.example,Business Consulting & Services,25,DE,https://www.linkedin.com/in/eva-clark-fc4de6,eva.clark@summitgrowth.example,safe
+Chloe Dupont,Chloe,Dupont,SDR Manager,Pulse Leads,https://pulseleads.example,Outsourcing/Offshoring,250,FR,https://www.linkedin.com/in/chloe-dupont-0bd333,chloe.dupont@pulseleads.example,safe
+Anna Novak,Anna,Novak,Lead Generation Manager,Bright Outbound,https://brightoutbound.example,Staffing & Recruiting,4,IN,https://www.linkedin.com/in/anna-novak-1bd967,anna.novak@brightoutbound.example,safe
+Sam Novak,Sam,Novak,SDR Manager,Nimbus Growth,https://nimbusgrowth.example,Staffing & Recruiting,4,NL,https://www.linkedin.com/in/sam-novak-c36490,sam.novak@nimbusgrowth.example,safe
+Marco Smith,Marco,Smith,CEO,Vector Reach,https://vectorreach.example,Marketing & Advertising,75,US,https://www.linkedin.com/in/marco-smith-6deceb,marco.smith@vectorreach.example,safe
+Chloe Brown,Chloe,Brown,Backend Developer,Bright Outbound,https://brightoutbound.example,Business Consulting & Services,4,DE,https://www.linkedin.com/in/chloe-brown-dc2cad,chloe.brown@brightoutbound.example,safe
+Sofia Rossi,Sofia,Rossi,SDR Manager,Cobalt Steel,https://cobaltsteel.example,Retail,8,FR,https://www.linkedin.com/in/sofia-rossi-a1af28,sofia.rossi@cobaltsteel.example,safe
+Chloe Smith,Chloe,Smith,Lead Generation Manager,Cobalt Reach,https://cobaltreach.example,Outsourcing/Offshoring,4,VN,https://www.linkedin.com/in/chloe-smith-2c2ec8,chloe.smith@cobaltreach.example,safe
+Nina Rossi,Nina,Rossi,Head of Growth,Quanta Search,https://quantasearch.example,Staffing & Recruiting,40,GB,https://www.linkedin.com/in/nina-rossi-f35273,,
+Nina Weber,Nina,Weber,SDR Manager,Quanta Foods,https://quantafoods.example,Mining & Metals,400,FR,https://www.linkedin.com/in/nina-weber-237699,nina.weber@quantafoods.example,safe
+Lea Smith,Lea,Smith,Head of Growth,Signal Growth,https://signalgrowth.example,Outsourcing/Offshoring,25,NL,https://www.linkedin.com/in/lea-smith-212e00,lea.smith@signalgrowth.example,safe
+Lucas Novak,Lucas,Novak,Head of Growth,Bright Talent,https://brighttalent.example,Outsourcing/Offshoring,400,ES,https://www.linkedin.com/in/lucas-novak-396974,lucas.novak@brighttalent.example,safe
+Noah Smith,Noah,Smith,CEO,Bright Reach,https://brightreach.example,Marketing & Advertising,30000,NL,https://www.linkedin.com/in/noah-smith-489f75,noah.smith@brightreach.example,safe
+Noah Moreau,Noah,Moreau,Founder,Summit Leads,https://summitleads.example,Marketing & Advertising,8,FR,https://www.linkedin.com/in/noah-moreau-fb1934,noah.moreau@summitleads.example,suspect
+Paul Muller,Paul,Muller,Business Development Manager,Atlas Growth,https://atlasgrowth.example,Marketing & Advertising,40,US,https://www.linkedin.com/in/paul-muller-aecebf,paul.muller@atlasgrowth.example,riskier
+Emma Moreau,Emma,Moreau,Marketing Intern,North Connect,https://northconnect.example,Marketing & Advertising,40,ES,https://www.linkedin.com/in/emma-moreau-77e5e2,emma.moreau@northconnect.example,safe
+Paul Wilson,Paul,Wilson,Head of Outbound,Summit Outbound,https://summitoutbound.example,Business Consulting & Services,4,FR,https://www.linkedin.com/in/paul-wilson-576e38,paul.wilson@summitoutbound.example,safe
+Hugo Lopez,Hugo,Lopez,Agency Owner,Bright Talent,https://brighttalent.example,Business Consulting & Services,30000,CA,https://www.linkedin.com/in/hugo-lopez-975b1c,hugo.lopez@brighttalent.example,safe
+Noah Weber,Noah,Weber,Founder,Mosaic Connect,https://mosaicconnect.example,Outsourcing/Offshoring,120,NL,https://www.linkedin.com/in/noah-weber-a9d440,noah.weber@mosaicconnect.example,safe
+Tom Wilson,Tom,Wilson,Agency Owner,Lumen Textiles,https://lumentextiles.example,Construction,250,DE,https://www.linkedin.com/in/tom-wilson-60d874,tom.wilson@lumentextiles.example,safe
+Ben Novak,Ben,Novak,Agency Owner,Summit Connect,https://summitconnect.example,Staffing & Recruiting,250,NL,https://www.linkedin.com/in/ben-novak-e66137,ben.novak@summitconnect.example,safe
+Lea Smith,Lea,Smith,Sales Manager,Atlas Search,https://atlassearch.example,Business Consulting & Services,120,DE,https://www.linkedin.com/in/lea-smith-9831a0,lea.smith@atlassearch.example,suspect
+Jordan Martin,Jordan,Martin,Talent Acquisition Lead,Lemlist,https://lemlist.example,Staffing & Recruiting,250,ES,https://www.linkedin.com/in/jordan-martin-343f01,jordan.martin@quantapipeline.example,safe
+Eva Rossi,Eva,Rossi,CEO,Oak Leads,https://oakleads.example,Business Consulting & Services,250,IE,https://www.linkedin.com/in/eva-rossi-f7b92d,eva.rossi@oakleads.example,safe
+Nina Dupont,Nina,Dupont,Lead Generation Manager,Quanta Reach,https://quantareach.example,Outsourcing/Offshoring,12,ES,https://www.linkedin.com/in/nina-dupont-35df94,nina.dupont@quantareach.example,safe
+Jordan Wilson,Jordan,Wilson,Sales Manager,Echo Leads,https://echoleads.example,Staffing & Recruiting,250,BR,https://www.linkedin.com/in/jordan-wilson-54897f,jordan.wilson@echoleads.example,safe
+Jordan Brown,Jordan,Brown,Sales Manager,Nimbus Growth,https://nimbusgrowth.example,Marketing & Advertising,8,CA,https://www.linkedin.com/in/jordan-brown-2df428,jordan.brown@nimbusgrowth.example,safe
+Liam Brown,Liam,Brown,Head of Growth,North Leads,https://northleads.example,Outsourcing/Offshoring,120,IN,https://www.linkedin.com/in/liam-brown-05e2cf,liam.brown@northleads.example,safe
+Ines Muller,Ines,Muller,SDR Manager,Oak Talent,https://oaktalent.example,Staffing & Recruiting,250,DE,https://www.linkedin.com/in/ines-muller-7e7e6f,ines.muller@oaktalent.example,safe
+Paul Moreau,Paul,Moreau,Head of Outbound,Quanta Outbound,https://quantaoutbound.example,Outsourcing/Offshoring,4,CA,https://www.linkedin.com/in/paul-moreau-12eb06,paul.moreau@quantaoutbound.example,safe
+Paul Moreau,Paul,Moreau,Executive Assistant,Signal Connect,https://signalconnect.example,Marketing & Advertising,75,NL,https://www.linkedin.com/in/paul-moreau-d21937/,paul.moreau@signalconnect.example,safe
+Jordan Muller,Jordan,Muller,SDR Manager,Signal Pipeline,https://signalpipeline.example,Staffing & Recruiting,250,US,https://www.linkedin.com/in/jordan-muller-ad1518/,jordan.muller@signalpipeline.example,safe
+Anna Smith,Anna,Smith,Lead Generation Manager,Harbor Leads,https://harborleads.example,Marketing & Advertising,25,CA,https://www.linkedin.com/in/anna-smith-4238e1/,anna.smith@harborleads.example,safe
+Sam Novak,Sam,Novak,SDR Manager,Lumen Reach,https://lumenreach.example,Marketing & Advertising,120,PK,https://www.linkedin.com/in/sam-novak-9cc819/,sam.novak@lumenreach.example,safe
+Alex Wilson,Alex,Wilson,Sales Manager,Oak Connect,https://oakconnect.example,Business Consulting & Services,250,PK,https://www.linkedin.com/in/alex-wilson-f249bd/,alex.wilson@oakconnect.example,safe
+Jordan Brown,Jordan,Brown,Sales Manager,Nimbus Growth,https://nimbusgrowth.example,Marketing & Advertising,8,CA,https://www.linkedin.com/in/jordan-brown-2df428/,jordan.brown@nimbusgrowth.example,safe

@@ -1,0 +1,36 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest -q   # mocked models + CSV fixture: no network, no paid APIs
+
+  evals:
+    # Real-model evals on the golden set. Hard gate: faithfulness must be 100%.
+    runs-on: ubuntu-latest
+    needs: quality
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+      OFFLINE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - name: Run evals (skipped when API secrets are absent, e.g. forks)
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ] || [ -z "$TOGETHER_API_KEY" ]; then
+            echo "No API secrets: skipping evals"; exit 0
+          fi
+          uv run pytest -m eval -q

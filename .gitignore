@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.db
+outbox.jsonl
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
