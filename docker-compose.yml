@@ -56,7 +56,7 @@ services:
   bot:
     <<: *app
     command: ["bot"]
-    restart: unless-stopped
+    restart: on-failure:3   # a missing TELEGRAM_* exits 1; don't crash-loop forever
 
   cli:
     <<: *app
