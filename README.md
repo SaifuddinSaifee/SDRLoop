@@ -47,9 +47,13 @@ scores on the trace. The details that matter:
 
 How the app is built, as opposed to how a lead flows through it (the diagram above).
 
-<p align="center">
-  <img src="architecture.svg" alt="Layered architecture: entry points (CLI, FastAPI webhook, Telegram bot, Streamlit) call the application layer (pipeline orchestrator with seven steps, read-only research tools, learning loop), which uses a platform layer (the single LLM gateway, Langfuse tracing, the repository, prompt management) backed by Anthropic, Together AI, Langfuse Cloud, PostgreSQL and local files, plus a stack strip" width="100%">
-</p>
+**Diagram: [`docs/architecture.excalidraw`](docs/architecture.excalidraw)** (editable source). Open it by
+dragging the file onto [excalidraw.com](https://excalidraw.com), or with the VS Code *Excalidraw* extension.
+It shows five layers: entry points (CLI, FastAPI webhook, Telegram bot, Streamlit); the application
+(pipeline orchestrator and its seven steps, the read-only research tools, the learning loop); the platform
+(the single LLM gateway, Langfuse tracing, the repository, prompt management); the external services and
+storage behind them (Anthropic, Together AI, Langfuse Cloud, PostgreSQL, local files); and the stack.
+Blue marks the model gateway, red the untrusted-input boundary, purple the learning loop.
 
 | Layer | Choice |
 |---|---|
