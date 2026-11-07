@@ -43,6 +43,36 @@ scores on the trace. The details that matter:
 - **Nothing leaves without a human.** The outbox refuses any draft without an approval record. The bot
   answers only `TELEGRAM_CHAT_ID`. `DRY_RUN=false` refuses to start (v1 has no sending adapters).
 
+## Architecture
+
+How the app is built, as opposed to how a lead flows through it (the diagram above).
+
+<p align="center">
+  <img src="architecture.svg" alt="Layered architecture: entry points (CLI, FastAPI webhook, Telegram bot, Streamlit) call the application layer (pipeline orchestrator with seven steps, read-only research tools, learning loop), which uses a platform layer (the single LLM gateway, Langfuse tracing, the repository, prompt management) backed by Anthropic, Together AI, Langfuse Cloud, PostgreSQL and local files, plus a stack strip" width="100%">
+</p>
+
+| Layer | Choice |
+|---|---|
+| Language and runtime | Python 3.12, [uv](https://docs.astral.sh/uv/), `asyncio` (5 leads in flight) |
+| Data and validation | Pydantic v2 (domain types, settings, and the schemas model output must satisfy), SQLAlchemy 2.0 async, Alembic, PostgreSQL 16 (SQLite for tests and local mode) |
+| HTTP | FastAPI + uvicorn for the Evaboot webhook; `httpx` for Evaboot, Together AI and the research tools; `tenacity` for retries |
+| Models | Anthropic SDK (Claude writes and researches) and Together AI over its OpenAI-compatible API (Llama qualifies, Qwen critiques), all behind one gateway |
+| Observability and prompts | Langfuse: traces, scores, and prompt versions with `production` / `challenger` labels |
+| Approval and UI | `python-telegram-bot` (long polling), Streamlit (review queue and KPI page) |
+| Parsing and safety | `selectolax` (HTML to text), `defusedxml` (news RSS), `rapidfuzz` (edit distance) |
+| Quality | `pytest` + `pytest-asyncio`, `ruff`, `mypy --strict` on `src/`, GitHub Actions |
+| Packaging | Docker, Docker Compose (Postgres, migrations, API, bot, CLI) |
+
+The structure enforces a few rules, each with exactly one home:
+
+- **One door to models.** Only `llm.py` talks to a provider. Routing, retries, the fallback model, JSON-schema validation with a corrective retry, budget checks, cost accounting and the Langfuse generation span all live there, so no step can skip them.
+- **A fixed pipeline with one free agent.** `pipeline.py` orchestrates plain-Python steps; only research chooses its own actions, and its toolset is frozen, read-only and budgeted. Steps are idempotent by lead, so a crashed or budget-stopped run resumes by stage.
+- **One door to the database.** `memory.py` is the only module that issues queries; everything else works with typed objects.
+- **Telegram is transport, not logic.** The approval rules live in `BotController`, which the Streamlit page reuses, so a decision made on the web gets the same guards, tracing and outbox behaviour as one made on a phone.
+- **Tests never touch a paid service.** `FakeProvider`, an offline HTTP transport serving recorded pages, and a SQLite database stand in for every dependency. The same suite also runs against Postgres.
+
+Why these choices were made is in [`docs/decisions.md`](docs/decisions.md).
+
 ## Quickstart
 
 Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).

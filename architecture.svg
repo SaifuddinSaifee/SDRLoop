@@ -1,0 +1,239 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 934" width="1180" height="934" role="img" aria-labelledby="t d">
+<title id="t">evaboot-sdr-loop architecture</title>
+<desc id="d">Layered architecture. Entry points (CLI, FastAPI webhook, Telegram bot, Streamlit) call the application layer: a pipeline orchestrator with seven steps, a read-only research toolset, and the learning loop. Everything that touches a model goes through one LLM gateway that routes to Anthropic and Together AI. Telemetry goes to Langfuse, state to PostgreSQL, approved drafts to a dry-run outbox file. A stack strip lists the libraries and tooling.</desc>
+<style>
+svg{--bg:#FFFFFF;--ink:#15202B;--muted:#5A6878;--line:#B3BDC8;--node:#F6F8FA;--band:#FBFCFD;
+--edit:#2754D3;--reject:#C2491B;--learn:#7446C2;--ok:#1C7C52}
+@media (prefers-color-scheme: dark){svg{--bg:#151D26;--ink:#E3E9F0;--muted:#8E9CAC;--line:#3A4858;--node:#1B2530;--band:#18222C;
+--edit:#7097FF;--reject:#F08A55;--learn:#B08CF0;--ok:#4CC08A}}
+.bg{fill:var(--bg)}
+.band{fill:var(--band);stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+.edge{fill:none;stroke:var(--line);stroke-width:1.6}
+.shape{fill:var(--node);stroke:var(--line);stroke-width:1.4}
+.ext{fill:var(--node);stroke:var(--line);stroke-width:1.4;stroke-dasharray:4 3}
+.gw{fill:color-mix(in srgb,var(--edit) 13%,var(--node));stroke:var(--edit);stroke-width:2.2}
+.sec{fill:color-mix(in srgb,var(--reject) 11%,var(--node));stroke:var(--reject);stroke-width:1.8}
+.lrn{fill:color-mix(in srgb,var(--learn) 12%,var(--node));stroke:var(--learn);stroke-width:1.8}
+.chip{fill:var(--bg);stroke:var(--line);stroke-width:1.1}
+text{font-family:ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.t{font-size:15px;font-weight:600;fill:var(--ink)}
+.num,.s,.lb,.kt,.cs{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.num{font-size:11px;fill:var(--muted)}
+.s{font-size:11px;fill:var(--muted)}
+.cs{font-size:11px;fill:var(--ink)}
+.lb{font-size:11px;fill:var(--muted);paint-order:stroke;stroke:var(--band);stroke-width:5px;stroke-linejoin:round}
+.kt{font-size:11px;letter-spacing:.07em;fill:var(--muted)}
+.key{font-size:12px;fill:var(--muted)}
+.sw-gw{fill:var(--edit)} .sw-sec{fill:var(--reject)} .sw-lrn{fill:var(--learn)}
+</style>
+<defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--line)"/></marker><marker id="m-edit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--edit);fill-opacity:.85"/></marker></defs>
+<rect class="bg" width="1180" height="934" rx="12"/>
+<rect class="band" x="10" y="14" width="1160" height="118" rx="12"/>
+<text class="kt" x="24" y="32">ENTRY POINTS</text>
+<rect class="shape" x="20" y="44" width="270" height="76" rx="9"/>
+<text class="t" x="34" y="68">CLI</text>
+<text class="s" x="34" y="88">Typer: run · bot · api · learn</text>
+<text class="s" x="34" y="103">purge · prompts push</text>
+<text class="num" x="278" y="66" text-anchor="end">cli.py</text>
+<rect class="shape" x="310" y="44" width="270" height="76" rx="9"/>
+<text class="t" x="324" y="68">Webhook API</text>
+<text class="s" x="324" y="88">FastAPI + uvicorn</text>
+<text class="s" x="324" y="103">Evaboot results · idempotent</text>
+<text class="num" x="568" y="66" text-anchor="end">api/</text>
+<rect class="shape" x="600" y="44" width="270" height="76" rx="9"/>
+<text class="t" x="614" y="68">Approval bot</text>
+<text class="s" x="614" y="88">python-telegram-bot, long polling</text>
+<text class="s" x="614" y="103">answers one chat id only</text>
+<text class="num" x="858" y="66" text-anchor="end">bot/</text>
+<rect class="shape" x="890" y="44" width="270" height="76" rx="9"/>
+<text class="t" x="904" y="68">Review UI</text>
+<text class="s" x="904" y="88">Streamlit: draft beside its sources</text>
+<text class="s" x="904" y="103">+ KPI page; same decision path</text>
+<text class="num" x="1148" y="66" text-anchor="end">app/</text>
+<path class="edge" d="M155 120 L155 146" marker-end="url(#m)"/>
+<path class="edge" d="M445 120 L445 146" marker-end="url(#m)"/>
+<path class="edge" d="M735 120 L735 146" marker-end="url(#m)"/>
+<path class="edge" d="M1025 120 L1025 146" marker-end="url(#m)"/>
+<rect class="band" x="10" y="146" width="1160" height="238" rx="12"/>
+<text class="kt" x="24" y="164">APPLICATION  ·  src/sdr_loop  ·  plain Python, typed (mypy strict)</text>
+<rect class="shape" x="20" y="176" width="560" height="112" rx="9"/>
+<text class="t" x="34" y="200">pipeline.py · orchestrator</text>
+<text class="s" x="34" y="218">asyncio, 5 leads at once · one trace per lead · resume by stage</text>
+<text class="s" x="34" y="233">per-lead / per-run budget stops · one bad lead never kills the run</text>
+<rect class="chip" x="34" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="68" y="267" text-anchor="middle">extract</text>
+<rect class="chip" x="110" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="144" y="267" text-anchor="middle">qualify</text>
+<rect class="chip" x="186" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="220" y="267" text-anchor="middle">research</text>
+<rect class="chip" x="262" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="296" y="267" text-anchor="middle">write</text>
+<rect class="chip" x="338" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="372" y="267" text-anchor="middle">critic</text>
+<rect class="chip" x="414" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="448" y="267" text-anchor="middle">approve</text>
+<rect class="chip" x="490" y="250" width="68" height="26" rx="6"/>
+<text class="cs" x="524" y="267" text-anchor="middle">outbox</text>
+<text class="num" x="568" y="200" text-anchor="end">steps/</text>
+<rect class="sec" x="600" y="176" width="270" height="112" rx="9"/>
+<text class="t" x="614" y="200">tools/ · research agent</text>
+<text class="s" x="614" y="220">fetch_page · search_news · read_lead</text>
+<text class="s" x="614" y="235">frozen, read-only, max 3 calls</text>
+<text class="s" x="614" y="250">own-company domain, public hosts</text>
+<text class="s" x="614" y="265">output wrapped as untrusted data</text>
+<rect class="lrn" x="890" y="176" width="270" height="112" rx="9"/>
+<text class="t" x="904" y="200">learn/ · nightly loop</text>
+<text class="s" x="904" y="220">edits + rejections → eval cases</text>
+<text class="s" x="904" y="235">LLM proposes a challenger prompt</text>
+<text class="s" x="904" y="250">champion vs challenger + golden set</text>
+<text class="s" x="904" y="265">promote past the faithfulness gate</text>
+<rect class="shape" x="20" y="300" width="270" height="70" rx="9"/>
+<text class="t" x="34" y="324">budget.py</text>
+<text class="s" x="34" y="344">per-lead tokens / USD / tool calls</text>
+<text class="s" x="34" y="359">per-run USD, via contextvars</text>
+<rect class="shape" x="310" y="300" width="270" height="70" rx="9"/>
+<text class="t" x="324" y="324">privacy.py · kpis.py</text>
+<text class="s" x="324" y="344">purge a lead, its data and trace</text>
+<text class="s" x="324" y="359">KPIs per prompt version and run</text>
+<rect class="shape" x="600" y="300" width="270" height="70" rx="9"/>
+<text class="t" x="614" y="324">models.py · config.py</text>
+<text class="s" x="614" y="344">Pydantic v2 domain types, settings</text>
+<text class="s" x="614" y="359">model routing + price tables</text>
+<rect class="shape" x="890" y="300" width="270" height="70" rx="9"/>
+<text class="t" x="904" y="324">demo.py · evaboot.py</text>
+<text class="s" x="904" y="344">canned fake models for --fake-llm</text>
+<text class="s" x="904" y="359">Evaboot API client (httpx)</text>
+<path class="edge" d="M155 370 L155 396" marker-end="url(#m)"/>
+<path class="edge" d="M445 370 L445 396" marker-end="url(#m)"/>
+<path class="edge" d="M735 370 L735 396" marker-end="url(#m)"/>
+<path class="edge" d="M1025 370 L1025 396" marker-end="url(#m)"/>
+<rect class="band" x="10" y="396" width="1160" height="128" rx="12"/>
+<text class="kt" x="24" y="414">PLATFORM  ·  every cross-cutting concern has exactly one home</text>
+<rect class="gw" x="20" y="426" width="270" height="88" rx="9"/>
+<text class="t" x="34" y="450">llm.py · the only model gateway</text>
+<text class="s" x="34" y="470">task → primary / fallback model</text>
+<text class="s" x="34" y="485">retry · backoff · JSON-schema retry</text>
+<text class="s" x="34" y="500">budget check before every call</text>
+<rect class="shape" x="310" y="426" width="270" height="88" rx="9"/>
+<text class="t" x="324" y="450">observability.py</text>
+<text class="s" x="324" y="470">Langfuse tracer; in-memory in tests</text>
+<text class="s" x="324" y="485">emails + phones masked on export</text>
+<text class="s" x="324" y="500">span per step, scores on the trace</text>
+<rect class="shape" x="600" y="426" width="270" height="88" rx="9"/>
+<text class="t" x="614" y="450">memory.py · db/</text>
+<text class="s" x="614" y="470">repository, SQLAlchemy 2.0 async</text>
+<text class="s" x="614" y="485">Alembic migrations 0001–0002</text>
+<text class="s" x="614" y="500">9 tables; steps idempotent by lead</text>
+<rect class="shape" x="890" y="426" width="270" height="88" rx="9"/>
+<text class="t" x="904" y="450">prompts.py</text>
+<text class="s" x="904" y="470">labels: production / challenger</text>
+<text class="s" x="904" y="485">Langfuse prompt management</text>
+<text class="s" x="904" y="500">local prompts/*.md offline fallback</text>
+<rect class="band" x="10" y="538" width="1160" height="124" rx="12"/>
+<text class="kt" x="24" y="556">MODELS  ·  TELEMETRY  ·  STORAGE</text>
+<rect class="ext" x="20" y="568" width="195" height="82" rx="9"/>
+<text class="t" x="34" y="592">Anthropic</text>
+<text class="s" x="34" y="612">Sonnet 5.5: write</text>
+<text class="s" x="34" y="627">Sonnet 5.5: challenger</text>
+<text class="s" x="34" y="642">Haiku 5.5: research</text>
+<rect class="ext" x="230" y="568" width="195" height="82" rx="9"/>
+<text class="t" x="244" y="592">Together AI</text>
+<text class="s" x="244" y="612">Llama 3.3 70B: qualify</text>
+<text class="s" x="244" y="627">Qwen 2.5 72B: critic</text>
+<text class="s" x="244" y="642">DeepSeek V3: fallback</text>
+<rect class="ext" x="440" y="568" width="195" height="82" rx="9"/>
+<text class="t" x="454" y="592">Langfuse Cloud</text>
+<text class="s" x="454" y="612">traces · scores · cost</text>
+<text class="s" x="454" y="627">prompt versions + labels</text>
+<rect class="ext" x="650" y="568" width="255" height="82" rx="9"/>
+<text class="t" x="664" y="592">PostgreSQL 16</text>
+<text class="s" x="664" y="612">leads · facts · drafts · decisions</text>
+<text class="s" x="664" y="627">eval_cases · runs · promotions</text>
+<text class="s" x="664" y="642">SQLite for tests and local mode</text>
+<rect class="ext" x="920" y="568" width="240" height="82" rx="9"/>
+<text class="t" x="934" y="592">Local files</text>
+<text class="s" x="934" y="612">outbox.jsonl: approved only</text>
+<text class="s" x="934" y="627">fixtures/: CSV + recorded pages</text>
+<text class="s" x="934" y="642">evals/: frozen golden set</text>
+<path class="edge" d="M110 514 L117 538" marker-end="url(#m-edit)"/>
+<path class="edge" d="M250 514 L327 538" marker-end="url(#m-edit)"/>
+<path class="edge" d="M445 514 L500 538" marker-end="url(#m)"/>
+<path class="edge" d="M735 514 L760 538" marker-end="url(#m)"/>
+<path class="edge" d="M1025 514 L1030 538" marker-end="url(#m)"/>
+<rect class="band" x="10" y="676" width="1160" height="112" rx="12"/>
+<text class="kt" x="24" y="694">OTHER EXTERNAL SERVICES  ·  DELIVERY</text>
+<rect class="ext" x="20" y="706" width="270" height="70" rx="9"/>
+<text class="t" x="34" y="730">Evaboot API</text>
+<text class="s" x="34" y="750">extraction + webhook → steps/extract</text>
+<rect class="ext" x="310" y="706" width="270" height="70" rx="9"/>
+<text class="t" x="324" y="730">Telegram Bot API</text>
+<text class="s" x="324" y="750">approve / edit / reject on a phone</text>
+<rect class="ext" x="600" y="706" width="270" height="70" rx="9"/>
+<text class="t" x="614" y="730">Company sites · Google News RSS</text>
+<text class="s" x="614" y="750">read by the research tools only</text>
+<rect class="ext" x="890" y="706" width="270" height="70" rx="9"/>
+<text class="t" x="904" y="730">Docker Compose · GitHub Actions</text>
+<text class="s" x="904" y="750">compose: postgres·migrate·api·bot</text>
+<text class="s" x="904" y="765">CI: ruff · mypy · pytest · evals</text>
+<rect class="band" x="10" y="802" width="1160" height="118" rx="12"/>
+<text class="kt" x="24" y="820">STACK</text>
+<rect class="chip" x="24" y="832" width="88" height="21" rx="5"/>
+<text class="cs" x="68.0" y="846.5" text-anchor="middle">Python 3.12</text>
+<rect class="chip" x="119" y="832" width="29" height="21" rx="5"/>
+<text class="cs" x="133.5" y="846.5" text-anchor="middle">uv</text>
+<rect class="chip" x="155" y="832" width="62" height="21" rx="5"/>
+<text class="cs" x="186.0" y="846.5" text-anchor="middle">asyncio</text>
+<rect class="chip" x="224" y="832" width="88" height="21" rx="5"/>
+<text class="cs" x="268.0" y="846.5" text-anchor="middle">Pydantic v2</text>
+<rect class="chip" x="319" y="832" width="126" height="21" rx="5"/>
+<text class="cs" x="382.0" y="846.5" text-anchor="middle">pydantic-settings</text>
+<rect class="chip" x="452" y="832" width="107" height="21" rx="5"/>
+<text class="cs" x="505.5" y="846.5" text-anchor="middle">SQLAlchemy 2.0</text>
+<rect class="chip" x="566" y="832" width="62" height="21" rx="5"/>
+<text class="cs" x="597.0" y="846.5" text-anchor="middle">Alembic</text>
+<rect class="chip" x="635" y="832" width="62" height="21" rx="5"/>
+<text class="cs" x="666.0" y="846.5" text-anchor="middle">asyncpg</text>
+<rect class="chip" x="704" y="832" width="74" height="21" rx="5"/>
+<text class="cs" x="741.0" y="846.5" text-anchor="middle">aiosqlite</text>
+<rect class="chip" x="24" y="858" width="62" height="21" rx="5"/>
+<text class="cs" x="55.0" y="872.5" text-anchor="middle">FastAPI</text>
+<rect class="chip" x="93" y="858" width="62" height="21" rx="5"/>
+<text class="cs" x="124.0" y="872.5" text-anchor="middle">uvicorn</text>
+<rect class="chip" x="162" y="858" width="48" height="21" rx="5"/>
+<text class="cs" x="186.0" y="872.5" text-anchor="middle">httpx</text>
+<rect class="chip" x="217" y="858" width="68" height="21" rx="5"/>
+<text class="cs" x="251.0" y="872.5" text-anchor="middle">tenacity</text>
+<rect class="chip" x="292" y="858" width="48" height="21" rx="5"/>
+<text class="cs" x="316.0" y="872.5" text-anchor="middle">Typer</text>
+<rect class="chip" x="347" y="858" width="140" height="21" rx="5"/>
+<text class="cs" x="417.0" y="872.5" text-anchor="middle">python-telegram-bot</text>
+<rect class="chip" x="494" y="858" width="74" height="21" rx="5"/>
+<text class="cs" x="531.0" y="872.5" text-anchor="middle">Streamlit</text>
+<rect class="chip" x="575" y="858" width="100" height="21" rx="5"/>
+<text class="cs" x="625.0" y="872.5" text-anchor="middle">anthropic SDK</text>
+<rect class="chip" x="682" y="858" width="94" height="21" rx="5"/>
+<text class="cs" x="729.0" y="872.5" text-anchor="middle">Langfuse SDK</text>
+<rect class="chip" x="24" y="884" width="81" height="21" rx="5"/>
+<text class="cs" x="64.5" y="898.5" text-anchor="middle">selectolax</text>
+<rect class="chip" x="112" y="884" width="81" height="21" rx="5"/>
+<text class="cs" x="152.5" y="898.5" text-anchor="middle">defusedxml</text>
+<rect class="chip" x="200" y="884" width="74" height="21" rx="5"/>
+<text class="cs" x="237.0" y="898.5" text-anchor="middle">rapidfuzz</text>
+<rect class="chip" x="281" y="884" width="55" height="21" rx="5"/>
+<text class="cs" x="308.5" y="898.5" text-anchor="middle">PyYAML</text>
+<rect class="chip" x="343" y="884" width="55" height="21" rx="5"/>
+<text class="cs" x="370.5" y="898.5" text-anchor="middle">pytest</text>
+<rect class="chip" x="405" y="884" width="42" height="21" rx="5"/>
+<text class="cs" x="426.0" y="898.5" text-anchor="middle">ruff</text>
+<rect class="chip" x="454" y="884" width="88" height="21" rx="5"/>
+<text class="cs" x="498.0" y="898.5" text-anchor="middle">mypy strict</text>
+<rect class="chip" x="549" y="884" width="55" height="21" rx="5"/>
+<text class="cs" x="576.5" y="898.5" text-anchor="middle">Docker</text>
+<rect class="sw-gw" x="560" y="811" width="10" height="10" rx="2"/>
+<text class="key" x="575" y="820">single model gateway</text>
+<rect class="sw-sec" x="721" y="811" width="10" height="10" rx="2"/>
+<text class="key" x="736" y="820">untrusted-input boundary</text>
+<rect class="sw-lrn" x="907" y="811" width="10" height="10" rx="2"/>
+<text class="key" x="922" y="820">learning loop</text>
+<text class="key" x="1024" y="820">dashed = external</text>
+</svg>
