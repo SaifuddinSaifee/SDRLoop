@@ -1,0 +1,341 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 600" width="1180" height="600" role="img" aria-labelledby="t d">
+<title id="t">Outreach agent pipeline</title>
+<desc id="d">Animated flowchart. Leads go from a Sales Nav URL through extract, a qualify decision, research, write, a critic decision and a human approve decision to outbox.jsonl. Not-fit leads are logged; edits and rejections become eval cases that a nightly learning decision uses to promote a better writer prompt.</desc>
+<style>
+svg{--bg:#FFFFFF;--ink:#15202B;--muted:#5A6878;--line:#B3BDC8;--node:#F6F8FA;
+--ok:#1C7C52;--edit:#2754D3;--reject:#C2491B;--skip:#76828F;--learn:#7446C2}
+@media (prefers-color-scheme: dark){svg{--bg:#151D26;--ink:#E3E9F0;--muted:#8E9CAC;--line:#3A4858;--node:#1B2530;
+--ok:#4CC08A;--edit:#7097FF;--reject:#F08A55;--skip:#9AA6B4;--learn:#B08CF0}}
+.bg{fill:var(--bg)}
+.edge{fill:none;stroke:var(--line);stroke-width:1.6}
+.shape{fill:var(--node);stroke:var(--line);stroke-width:1.4}
+.rim{fill:none;stroke:var(--line);stroke-width:1.4}
+.src{stroke-dasharray:4 3}
+text{font-family:ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.t{font-size:15px;font-weight:600;fill:var(--ink)}
+.num,.s,.lb,.kt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.num{font-size:12px;fill:var(--muted)}
+.s{font-size:11px;fill:var(--muted)}
+.lb{font-size:11.5px;fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+.kt{font-size:11px;letter-spacing:.06em;fill:var(--muted)}
+.key{font-size:12.5px;fill:var(--muted)}
+.cap-name{font-size:20px;font-weight:600;fill:var(--ink)}
+.cap-sum{font-size:13px;fill:var(--ink)}
+.tl{font-size:12px;font-weight:600;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.ver2{fill:var(--learn);font-weight:600}
+
+.c-ok{fill:var(--ok)} .s-ok{stroke:var(--ok)} .hl-ok{fill:color-mix(in srgb,var(--ok) 15%,var(--node));stroke:var(--ok);stroke-width:2.4} .rt-ok{fill:none;stroke:var(--ok);stroke-opacity:.5;stroke-width:2.2}
+.c-edit{fill:var(--edit)} .s-edit{stroke:var(--edit)} .hl-edit{fill:color-mix(in srgb,var(--edit) 15%,var(--node));stroke:var(--edit);stroke-width:2.4} .rt-edit{fill:none;stroke:var(--edit);stroke-opacity:.5;stroke-width:2.2}
+.c-reject{fill:var(--reject)} .s-reject{stroke:var(--reject)} .hl-reject{fill:color-mix(in srgb,var(--reject) 15%,var(--node));stroke:var(--reject);stroke-width:2.4} .rt-reject{fill:none;stroke:var(--reject);stroke-opacity:.5;stroke-width:2.2}
+.c-skip{fill:var(--skip)} .s-skip{stroke:var(--skip)} .hl-skip{fill:color-mix(in srgb,var(--skip) 15%,var(--node));stroke:var(--skip);stroke-width:2.4} .rt-skip{fill:none;stroke:var(--skip);stroke-opacity:.5;stroke-width:2.2}
+.c-learn{fill:var(--learn)} .s-learn{stroke:var(--learn)} .hl-learn{fill:color-mix(in srgb,var(--learn) 15%,var(--node));stroke:var(--learn);stroke-width:2.4} .rt-learn{fill:none;stroke:var(--learn);stroke-opacity:.5;stroke-width:2.2}
+</style>
+<defs>
+<marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--line)"/></marker>
+<marker id="m-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--ok);fill-opacity:.8"/></marker>
+<marker id="m-edit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--edit);fill-opacity:.8"/></marker>
+<marker id="m-reject" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--reject);fill-opacity:.8"/></marker>
+<marker id="m-skip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--skip);fill-opacity:.8"/></marker>
+<marker id="m-learn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--learn);fill-opacity:.8"/></marker>
+</defs>
+<rect class="bg" width="1180" height="600" rx="12"/>
+<path class="edge" d="M160 150 L205 150" marker-end="url(#m)"/>
+<path class="edge" d="M345 150 L380 150" marker-end="url(#m)"/>
+<path class="edge" d="M560 150 L595 150" marker-end="url(#m)"/>
+<path class="edge" d="M735 150 L780 150" marker-end="url(#m)"/>
+<path class="edge" d="M920 150 L955 150" marker-end="url(#m)"/>
+<path class="edge" d="M470 212 L470 332" marker-end="url(#m)"/>
+<path class="edge" d="M1045 88 C1045 28 850 28 850 110" marker-end="url(#m)"/>
+<path class="edge" d="M1045 212 L1045 298" marker-end="url(#m)"/>
+<path class="edge" d="M1045 422 L1045 508" marker-end="url(#m)"/>
+<path class="edge" d="M955 360 C880 360 860 540 735 540" marker-end="url(#m)"/>
+<path class="edge" d="M665 512 L665 422" marker-end="url(#m)"/>
+<path class="edge" d="M755 360 C820 360 850 300 850 190" marker-end="url(#m)"/>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.00709;0.12729"/>
+<path class="rt-ok" d="M160 150 L205 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M345 150 L380 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M560 150 L595 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M735 150 L780 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M920 150 L955 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 212 L1045 298" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 422 L1045 508" marker-end="url(#m-ok)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.12729;0.18697"/>
+<path class="rt-skip" d="M160 150 L205 150" marker-end="url(#m-skip)"/>
+<path class="rt-skip" d="M345 150 L380 150" marker-end="url(#m-skip)"/>
+<path class="rt-skip" d="M470 212 L470 332" marker-end="url(#m-skip)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.18697;0.35220"/>
+<path class="rt-reject" d="M160 150 L205 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M345 150 L380 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M560 150 L595 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M735 150 L780 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M920 150 L955 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M1045 88 C1045 28 850 28 850 110" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M1045 212 L1045 298" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M955 360 C880 360 860 540 735 540" marker-end="url(#m-reject)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.35220;0.47239"/>
+<path class="rt-ok" d="M160 150 L205 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M345 150 L380 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M560 150 L595 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M735 150 L780 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M920 150 L955 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 212 L1045 298" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 422 L1045 508" marker-end="url(#m-ok)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.47239;0.53208"/>
+<path class="rt-skip" d="M160 150 L205 150" marker-end="url(#m-skip)"/>
+<path class="rt-skip" d="M345 150 L380 150" marker-end="url(#m-skip)"/>
+<path class="rt-skip" d="M470 212 L470 332" marker-end="url(#m-skip)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.53208;0.66150"/>
+<path class="rt-edit" d="M160 150 L205 150" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M345 150 L380 150" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M560 150 L595 150" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M735 150 L780 150" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M920 150 L955 150" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M1045 212 L1045 298" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M1045 422 L1045 508" marker-end="url(#m-edit)"/>
+<path class="rt-edit" d="M955 360 C880 360 860 540 735 540" marker-end="url(#m-edit)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.66150;0.79092"/>
+<path class="rt-reject" d="M160 150 L205 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M345 150 L380 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M560 150 L595 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M735 150 L780 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M920 150 L955 150" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M1045 212 L1045 298" marker-end="url(#m-reject)"/>
+<path class="rt-reject" d="M955 360 C880 360 860 540 735 540" marker-end="url(#m-reject)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.79092;0.85498"/>
+<path class="rt-learn" d="M665 512 L665 422" marker-end="url(#m-learn)"/>
+<path class="rt-learn" d="M755 360 C820 360 850 300 850 190" marker-end="url(#m-learn)"/>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.85498;1.00000"/>
+<path class="rt-ok" d="M160 150 L205 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M345 150 L380 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M560 150 L595 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M735 150 L780 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M920 150 L955 150" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 212 L1045 298" marker-end="url(#m-ok)"/>
+<path class="rt-ok" d="M1045 422 L1045 508" marker-end="url(#m-ok)"/>
+</g>
+<text class="lb" x="577" y="140" text-anchor="middle">fit</text>
+<text class="lb" x="480" y="275" text-anchor="start">not fit / maybe</text>
+<text class="lb" x="948" y="74" text-anchor="middle">fail once</text>
+<text class="lb" x="1055" y="262" text-anchor="start">pass</text>
+<text class="lb" x="1055" y="472" text-anchor="start">approve / edit</text>
+<text class="lb" x="876" y="458" text-anchor="start">edit / reject</text>
+<text class="lb" x="862" y="268" text-anchor="start">wins +</text>
+<text class="lb" x="862" y="283" text-anchor="start">faithfulness gate</text>
+<g>
+<rect class="shape src"  x="20" y="110.0" width="140" height="80" rx="9"/>
+<rect class="hl-ok" opacity="0" x="20" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.00709;0.01324;0.35220;0.35834;0.85498;0.86113"/></rect>
+<rect class="hl-edit" opacity="0" x="20" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.53208;0.53822"/></rect>
+<rect class="hl-reject" opacity="0" x="20" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.18697;0.19312;0.66150;0.66765"/></rect>
+<rect class="hl-skip" opacity="0" x="20" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.12729;0.13343;0.47239;0.47854"/></rect>
+<text class="t" x="90" y="147.0" text-anchor="middle">Sales Nav URL</text>
+<text class="s" x="90" y="162.0" text-anchor="middle">or CSV fixture</text>
+</g>
+<g>
+<rect class="shape"  x="205" y="110.0" width="140" height="80" rx="9"/>
+<rect class="hl-ok" opacity="0" x="205" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.01867;0.02529;0.36378;0.37040;0.86657;0.87318"/></rect>
+<rect class="hl-edit" opacity="0" x="205" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.54366;0.55028"/></rect>
+<rect class="hl-reject" opacity="0" x="205" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.19856;0.20517;0.67308;0.67970"/></rect>
+<rect class="hl-skip" opacity="0" x="205" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.13887;0.14549;0.48398;0.49059"/></rect>
+<text class="t" x="275" y="140.0" text-anchor="middle"><tspan class="num">1 </tspan>extract</text>
+<text class="s" x="275" y="155.0" text-anchor="middle">Evaboot API</text>
+<text class="s" x="275" y="169.0" text-anchor="middle">+ webhook</text>
+</g>
+<g>
+<polygon class="shape"  points="470,88 560,150 470,212 380,150"/>
+<polygon class="hl-ok" opacity="0" points="470,88 560,150 470,212 380,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.03073;0.04018;0.37583;0.38529;0.87862;0.88808"/></polygon>
+<polygon class="hl-edit" opacity="0" points="470,88 560,150 470,212 380,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.55572;0.56517"/></polygon>
+<polygon class="hl-reject" opacity="0" points="470,88 560,150 470,212 380,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.21061;0.22007;0.68514;0.69459"/></polygon>
+<polygon class="hl-skip" opacity="0" points="470,88 560,150 470,212 380,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.15093;0.16038;0.49603;0.50549"/></polygon>
+<text class="t" x="470" y="138" text-anchor="middle"><tspan class="num">2 </tspan>qualify</text>
+<text class="s" x="470" y="154" text-anchor="middle">code rules,</text>
+<text class="s" x="470" y="168" text-anchor="middle">then LLM</text>
+</g>
+<g>
+<rect class="shape"  x="595" y="110.0" width="140" height="80" rx="9"/>
+<rect class="hl-ok" opacity="0" x="595" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.04562;0.05531;0.39073;0.40042;0.89351;0.90320"/></rect>
+<rect class="hl-edit" opacity="0" x="595" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.57061;0.58030"/></rect>
+<rect class="hl-reject" opacity="0" x="595" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.22550;0.23519;0.70003;0.70972"/></rect>
+<text class="t" x="665" y="140.0" text-anchor="middle"><tspan class="num">3 </tspan>research</text>
+<text class="s" x="665" y="155.0" text-anchor="middle">agent, max 3</text>
+<text class="s" x="665" y="169.0" text-anchor="middle">tool calls</text>
+</g>
+<g>
+<rect class="shape"  x="780" y="110.0" width="140" height="80" rx="9"/>
+<rect class="hl-ok" opacity="0" x="780" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.06075;0.06902;0.40585;0.41413;0.90864;0.91691"/></rect>
+<rect class="hl-edit" opacity="0" x="780" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.58574;0.59401"/></rect>
+<rect class="hl-reject" opacity="0" x="780" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.24063;0.24890;0.27643;0.28470;0.71516;0.72343"/></rect>
+<rect class="hl-learn" opacity="0" x="780" y="110.0" width="140" height="80" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.83371;0.84198"/></rect>
+<text class="t" x="850" y="140.0" text-anchor="middle"><tspan class="num">4 </tspan>write</text>
+<text class="s" x="850" y="155.0" text-anchor="middle">cites fact ids</text>
+<text class="s" x="850" y="169.0" text-anchor="middle">prompt v1<animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.00000;0.84198"/></text>
+<text class="s ver2" x="850" y="169.0" text-anchor="middle" opacity="0">prompt v2<animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.84198;1.00000"/></text>
+</g>
+<g>
+<polygon class="shape"  points="1045,88 1135,150 1045,212 955,150"/>
+<polygon class="hl-ok" opacity="0" points="1045,88 1135,150 1045,212 955,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.07446;0.08450;0.41956;0.42961;0.92235;0.93240"/></polygon>
+<polygon class="hl-edit" opacity="0" points="1045,88 1135,150 1045,212 955,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.59945;0.60949"/></polygon>
+<polygon class="hl-reject" opacity="0" points="1045,88 1135,150 1045,212 955,150"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.25434;0.26439;0.29014;0.30019;0.72887;0.73891"/></polygon>
+<text class="t" x="1045" y="138" text-anchor="middle"><tspan class="num">5 </tspan>critic</text>
+<text class="s" x="1045" y="154" text-anchor="middle">code checks +</text>
+<text class="s" x="1045" y="168" text-anchor="middle">other-family LLM</text>
+</g>
+<g>
+<path class="shape"  d="M400 339.0 A70 7 0 0 1 540 339.0 V381.0 A70 7 0 0 1 400 381.0 Z"/>
+<path class="rim" d="M400 339.0 A70 7 0 0 0 540 339.0"/>
+<path class="hl-skip" opacity="0" d="M400 339.0 A70 7 0 0 1 540 339.0 V381.0 A70 7 0 0 1 400 381.0 Z"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.16629;0.17397;0.51140;0.51908"/></path>
+<text class="t" x="470" y="369" text-anchor="middle">logged</text>
+</g>
+<g>
+<polygon class="shape"  points="665,298 755,360 665,422 575,360"/>
+<polygon class="hl-learn" opacity="0" points="665,298 755,360 665,422 575,360"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.80404;0.82295"/></polygon>
+<text class="t" x="665" y="348" text-anchor="middle">nightly learn</text>
+<text class="s" x="665" y="364" text-anchor="middle">challenger vs</text>
+<text class="s" x="665" y="378" text-anchor="middle">champion</text>
+</g>
+<g>
+<polygon class="shape"  points="1045,298 1135,360 1045,422 955,360"/>
+<polygon class="hl-ok" opacity="0" points="1045,298 1135,360 1045,422 955,360"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.08994;0.10117;0.43505;0.44627;0.93783;0.94906"/></polygon>
+<polygon class="hl-edit" opacity="0" points="1045,298 1135,360 1045,422 955,360"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.61493;0.62616"/></polygon>
+<polygon class="hl-reject" opacity="0" points="1045,298 1135,360 1045,422 955,360"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.30562;0.31685;0.74435;0.75558"/></polygon>
+<text class="t" x="1045" y="348" text-anchor="middle"><tspan class="num">6 </tspan>approve</text>
+<text class="s" x="1045" y="364" text-anchor="middle">Telegram /</text>
+<text class="s" x="1045" y="378" text-anchor="middle">Streamlit</text>
+</g>
+<g>
+<path class="shape"  d="M595 519.0 A70 7 0 0 1 735 519.0 V561.0 A70 7 0 0 1 595 561.0 Z"/>
+<path class="rim" d="M595 519.0 A70 7 0 0 0 735 519.0"/>
+<path class="hl-edit" opacity="0" d="M595 519.0 A70 7 0 0 1 735 519.0 V561.0 A70 7 0 0 1 595 561.0 Z"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.64082;0.64850"/></path>
+<path class="hl-reject" opacity="0" d="M595 519.0 A70 7 0 0 1 735 519.0 V561.0 A70 7 0 0 1 595 561.0 Z"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.33151;0.33920;0.77024;0.77792"/></path>
+<path class="hl-learn" opacity="0" d="M595 519.0 A70 7 0 0 1 735 519.0 V561.0 A70 7 0 0 1 595 561.0 Z"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.79092;0.79861"/></path>
+<text class="t" x="665" y="549" text-anchor="middle">eval cases</text>
+</g>
+<g>
+<rect class="shape"  x="975" y="508.0" width="140" height="64" rx="9"/>
+<rect class="hl-ok" opacity="0" x="975" y="508.0" width="140" height="64" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.10661;0.11429;0.45171;0.45939;0.95450;0.96218"/></rect>
+<rect class="hl-edit" opacity="0" x="975" y="508.0" width="140" height="64" rx="9"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.63159;0.63928"/></rect>
+<text class="t" x="1045" y="537.0" text-anchor="middle"><tspan class="num">7 </tspan>outbox.jsonl</text>
+<text class="s" x="1045" y="552.0" text-anchor="middle">dry run</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.00709;0.12729"/>
+<text class="kt" x="24" y="418">LEAD 1 OF 8 · <tspan class="c-ok" style="font-weight:600">APPROVED</tspan></text>
+<text class="cap-name" x="24" y="442">Northwind Freight</text>
+<text class="cap-sum" x="24" y="464">Fit, researched, drafted, passes the critic, approved, lands in</text>
+<text class="cap-sum" x="24" y="481">the outbox.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.12729;0.18697"/>
+<text class="kt" x="24" y="418">LEAD 2 OF 8 · <tspan class="c-skip" style="font-weight:600">NOT FIT / MAYBE</tspan></text>
+<text class="cap-name" x="24" y="442">Lumen Dental Group</text>
+<text class="cap-sum" x="24" y="464">Qualify says not fit, so the lead is logged and goes no further.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.18697;0.35220"/>
+<text class="kt" x="24" y="418">LEAD 3 OF 8 · <tspan class="c-reject" style="font-weight:600">REJECTED</tspan></text>
+<text class="cap-name" x="24" y="442">Halvorsen Tooling</text>
+<text class="cap-sum" x="24" y="464">Critic fails the first draft and sends it back once. The rewrite</text>
+<text class="cap-sum" x="24" y="481">passes, the human rejects it, and it becomes an eval case.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.35220;0.47239"/>
+<text class="kt" x="24" y="418">LEAD 4 OF 8 · <tspan class="c-ok" style="font-weight:600">APPROVED</tspan></text>
+<text class="cap-name" x="24" y="442">Brightline Solar</text>
+<text class="cap-sum" x="24" y="464">Clean run: fit, passes the critic, approved, lands in the outbox.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.47239;0.53208"/>
+<text class="kt" x="24" y="418">LEAD 5 OF 8 · <tspan class="c-skip" style="font-weight:600">NOT FIT / MAYBE</tspan></text>
+<text class="cap-name" x="24" y="442">Kestrel Analytics</text>
+<text class="cap-sum" x="24" y="464">Qualify says maybe, so the lead is logged for later instead of</text>
+<text class="cap-sum" x="24" y="481">being contacted.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.53208;0.66150"/>
+<text class="kt" x="24" y="418">LEAD 6 OF 8 · <tspan class="c-edit" style="font-weight:600">EDITED</tspan></text>
+<text class="cap-name" x="24" y="442">Orchard Cold Chain</text>
+<text class="cap-sum" x="24" y="464">The human edits the draft. The edited message goes to the outbox</text>
+<text class="cap-sum" x="24" y="481">and the edit is also saved as an eval case.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.66150;0.79092"/>
+<text class="kt" x="24" y="418">LEAD 7 OF 8 · <tspan class="c-reject" style="font-weight:600">REJECTED</tspan></text>
+<text class="cap-name" x="24" y="442">Meridian Plastics</text>
+<text class="cap-sum" x="24" y="464">The human rejects the draft. It becomes the third eval case, which</text>
+<text class="cap-sum" x="24" y="481">is enough for tonight&#x27;s learning run.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.79092;0.85498"/>
+<text class="kt" x="24" y="418">AFTER LEAD 7 OF 8 · <tspan class="c-learn" style="font-weight:600">NIGHTLY LEARNING</tspan></text>
+<text class="cap-name" x="24" y="442">Nightly learn</text>
+<text class="cap-sum" x="24" y="464">Overnight, a challenger prompt is scored against the champion on</text>
+<text class="cap-sum" x="24" y="481">the eval cases. It wins and passes the faithfulness gate, so the</text>
+<text class="cap-sum" x="24" y="498">writer is promoted to v2.</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.85498;1.00000"/>
+<text class="kt" x="24" y="418">LEAD 8 OF 8 · <tspan class="c-ok" style="font-weight:600">APPROVED</tspan></text>
+<text class="cap-name" x="24" y="442">Dovetail Labs</text>
+<text class="cap-sum" x="24" y="464">The next morning&#x27;s lead is drafted by the promoted v2 writer and</text>
+<text class="cap-sum" x="24" y="481">approved.</text>
+</g>
+<text class="kt" x="24" y="532">DOT COLOR = WHERE THE LEAD ENDS UP</text>
+<circle class="c-ok" cx="31" cy="548" r="6"/><text class="key" x="44" y="552">Approved → outbox</text>
+<circle class="c-edit" cx="31" cy="569" r="6"/><text class="key" x="44" y="573">Edited → outbox + eval case</text>
+<circle class="c-reject" cx="31" cy="590" r="6"/><text class="key" x="44" y="594">Rejected → eval case</text>
+<circle class="c-skip" cx="267" cy="548" r="6"/><text class="key" x="280" y="552">Not fit / maybe → logged</text>
+<circle class="c-learn" cx="267" cy="569" r="6"/><text class="key" x="280" y="573">Nightly learning run</text>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.00709;0.11429"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 212 L1045 298 M1045 422 L1045 508" keyPoints="0.00000;0.00000;0.00000;0.12180;0.12180;0.21717;0.21717;0.31253;0.31253;0.43515;0.43515;0.53052;0.53052;0.76485;0.76485;0.99918;0.99918;0.99918" keyTimes="0.00000;0.00709;0.01324;0.01867;0.02529;0.03073;0.04018;0.04562;0.05531;0.06075;0.06902;0.07446;0.08450;0.08994;0.10117;0.10661;0.11429;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-ok" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-ok" x="11" y="-10">Northwind</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.12729;0.17397"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M470 212 L470 332" keyPoints="0.00000;0.00000;0.00000;0.22350;0.22350;0.39850;0.39850;0.99850;0.99850;0.99850" keyTimes="0.00000;0.12729;0.13343;0.13887;0.14549;0.15093;0.16038;0.16629;0.17397;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-skip" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-skip" x="11" y="-10">Lumen</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.18697;0.33920"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 88 C1045 28 850 28 850 110 M920 150 L955 150 M1045 212 L1045 298 M955 360 C880 360 860 540 735 540" keyPoints="0.00000;0.00000;0.00000;0.05208;0.05208;0.09286;0.09286;0.13364;0.13364;0.18607;0.18607;0.22685;0.22685;0.51180;0.51180;0.55258;0.55258;0.65278;0.65278;0.99965;0.99965;0.99965" keyTimes="0.00000;0.18697;0.19312;0.19856;0.20517;0.21061;0.22007;0.22550;0.23519;0.24063;0.24890;0.25434;0.26439;0.27643;0.28470;0.29014;0.30019;0.30562;0.31685;0.33151;0.33920;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-reject" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-reject" x="11" y="-10">Halvorsen</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.35220;0.45939"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 212 L1045 298 M1045 422 L1045 508" keyPoints="0.00000;0.00000;0.00000;0.12180;0.12180;0.21717;0.21717;0.31253;0.31253;0.43515;0.43515;0.53052;0.53052;0.76485;0.76485;0.99918;0.99918;0.99918" keyTimes="0.00000;0.35220;0.35834;0.36378;0.37040;0.37583;0.38529;0.39073;0.40042;0.40585;0.41413;0.41956;0.42961;0.43505;0.44627;0.45171;0.45939;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-ok" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-ok" x="11" y="-10">Brightline</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.47239;0.51908"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M470 212 L470 332" keyPoints="0.00000;0.00000;0.00000;0.22350;0.22350;0.39850;0.39850;0.99850;0.99850;0.99850" keyTimes="0.00000;0.47239;0.47854;0.48398;0.49059;0.49603;0.50549;0.51140;0.51908;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-skip" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-skip" x="11" y="-10">Kestrel</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.53208;0.62616"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 212 L1045 298" keyPoints="0.00000;0.00000;0.00000;0.15907;0.15907;0.28363;0.28363;0.40819;0.40819;0.56833;0.56833;0.69288;0.69288;0.99893;0.99893;0.99893" keyTimes="0.00000;0.53208;0.53822;0.54366;0.55028;0.55572;0.56517;0.57061;0.58030;0.58574;0.59401;0.59945;0.60949;0.61493;0.62616;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-edit" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-edit" x="11" y="-10">Orchard</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.62616;0.63928"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M1045 422 L1045 508" keyPoints="0.00000;0.00000;0.99651;0.99651;0.99651" keyTimes="0.00000;0.62616;0.63159;0.63928;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-edit" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-edit" x="11" y="-10">Orchard</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.62616;0.64850"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M955 360 C880 360 860 540 735 540" keyPoints="0.00000;0.00000;0.99899;0.99899;0.99899" keyTimes="0.00000;0.62616;0.64082;0.64850;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-edit" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-edit" x="11" y="-10">Orchard</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.66150;0.77792"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 212 L1045 298 M955 360 C880 360 860 540 735 540" keyPoints="0.00000;0.00000;0.00000;0.07724;0.07724;0.13772;0.13772;0.19820;0.19820;0.27595;0.27595;0.33643;0.33643;0.48504;0.48504;0.99948;0.99948;0.99948" keyTimes="0.00000;0.66150;0.66765;0.67308;0.67970;0.68514;0.69459;0.70003;0.70972;0.71516;0.72343;0.72887;0.73891;0.74435;0.75558;0.77024;0.77792;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-reject" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-reject" x="11" y="-10">Meridian</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.79092;0.84198"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M665 512 L665 422 M755 360 C820 360 850 300 850 190" keyPoints="0.00000;0.00000;0.00000;0.29082;0.29082;0.99903;0.99903;0.99903" keyTimes="0.00000;0.79092;0.79861;0.80404;0.82295;0.83371;0.84198;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-learn" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-learn" x="11" y="-10">nightly</text>
+</g>
+<g opacity="0"><animate attributeName="opacity" dur="84.61s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.85498;0.96218"/>
+<animateMotion dur="84.61s" repeatCount="indefinite" path="M160 150 L205 150 M345 150 L380 150 M560 150 L595 150 M735 150 L780 150 M920 150 L955 150 M1045 212 L1045 298 M1045 422 L1045 508" keyPoints="0.00000;0.00000;0.00000;0.12180;0.12180;0.21717;0.21717;0.31253;0.31253;0.43515;0.43515;0.53052;0.53052;0.76485;0.76485;0.99918;0.99918;0.99918" keyTimes="0.00000;0.85498;0.86113;0.86657;0.87318;0.87862;0.88808;0.89351;0.90320;0.90864;0.91691;0.92235;0.93240;0.93783;0.94906;0.95450;0.96218;1.00000" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>
+<circle r="7" class="c-ok" style="stroke:var(--bg);stroke-width:2.5"/>
+<text class="tl c-ok" x="11" y="-10">Dovetail</text>
+</g>
+</svg>

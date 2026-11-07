@@ -22,21 +22,9 @@ Dry run by default: nothing is ever sent. Full spec: [`docs/PRD.md`](docs/PRD.md
 
 ## How it works
 
-```mermaid
-flowchart LR
-  A[Sales Nav URL / CSV fixture] --> E[1 extract<br/>Evaboot API + webhook]
-  E --> Q[2 qualify<br/>code rules, then LLM]
-  Q -->|fit| R[3 research<br/>agent, max 3 tool calls]
-  Q -->|not fit / maybe| L[(logged)]
-  R --> W[4 write<br/>cites fact ids]
-  W --> C[5 critic<br/>code checks + other-family LLM]
-  C -->|fail once| W
-  C --> P[6 approve<br/>Telegram / Streamlit]
-  P -->|approve / edit| O[7 outbox.jsonl<br/>dry run]
-  P -->|edit / reject| EV[(eval cases)]
-  EV --> N[nightly learn:<br/>challenger vs champion]
-  N -->|wins + faithfulness gate| W
-```
+<p align="center">
+  <img src="pipeline-animated.svg" alt="Animated pipeline: Sales Nav URL → extract → qualify → research → write → critic → human approve → outbox.jsonl, with edits and rejections feeding a nightly learning loop that promotes a better writer prompt" width="100%">
+</p>
 
 A fixed Python pipeline; only research is a free agent. One Langfuse trace per lead, one span per step,
 scores on the trace. The details that matter:
