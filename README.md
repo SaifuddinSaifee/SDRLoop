@@ -14,7 +14,7 @@ Dry run by default: nothing is ever sent. Full spec: [`docs/PRD.md`](docs/PRD.md
 | | |
 |---|---|
 | Built and tested | Whole pipeline, approval flow, learn loop, purge, KPI queries, Streamlit pages. 139 tests; the suite also passes against Postgres. |
-| **Not yet run with real services** | The Anthropic / Together providers, Langfuse, the Telegram bot against Telegram, the Evaboot API. Tests use scripted fake models and recorded fixtures; the first real run may surface integration bugs. |
+| **Not yet run with real services** | The Together AI provider and its GLM models, Langfuse, the Telegram bot against Telegram, the Evaboot API. Tests use scripted fake models and recorded fixtures; the first real run may surface integration bugs. |
 | **No quality numbers yet** | The KPI table below is a template. Precision, recall, faithfulness on real models, and before/after promotion numbers need real keys and ~50 human reviews. |
 | Not built | AWS deployment, Instantly/Gmail adapters, simulated-reply feed, qualify-prompt learning, Langfuse datasets, Evaboot MCP. |
 | Fixture is synthetic | `fixtures/evaboot_export.csv` is generated (`scripts/make_fixture.py`) to look like an Evaboot export. Only a few column names are documented by Evaboot; map a real export in `EVABOOT_COLUMNS` ([`steps/extract.py`](src/sdr_loop/steps/extract.py)). |
@@ -36,8 +36,9 @@ scores on the trace. The details that matter:
   inside), the toolset is frozen and read-only, `fetch_page` can only read the lead's own company domain
   (and refuses non-public hosts), and instruction-like snippets are dropped. Tested with a scripted model
   that *obeys* an injected page; whether a real model resists is an eval question, not proven here.
-- **The critic is a different model family** from the writer (Claude writes; Qwen on Together critiques;
-  Llama on Together qualifies). An uncited claim caps faithfulness at 2 in code, not by trusting the model.
+- **The critic is a different model family** from the writer. Everything runs on Together AI: GLM-5.3
+  writes (GLM-5.3 Flash researches and qualifies) and DeepSeek V4.1 Flash critiques. An uncited claim
+  caps faithfulness at 2 in code, not by trusting the model.
 - **Budgets stop runs cleanly.** Per-lead (USD, tokens, 3 tool calls) and per-run (USD). A stopped lead
   never produces a partial draft. Runs resume by stage after a crash.
 - **Nothing leaves without a human.** The outbox refuses any draft without an approval record. The bot
@@ -52,7 +53,7 @@ dragging the file onto [excalidraw.com](https://excalidraw.com), or with the VS 
 It shows five layers: entry points (CLI, FastAPI webhook, Telegram bot, Streamlit); the application
 (pipeline orchestrator and its seven steps, the read-only research tools, the learning loop); the platform
 (the single LLM gateway, Langfuse tracing, the repository, prompt management); the external services and
-storage behind them (Anthropic, Together AI, Langfuse Cloud, PostgreSQL, local files); and the stack.
+storage behind them (Together AI, Langfuse Cloud, PostgreSQL, local files); and the stack.
 Blue marks the model gateway, red the untrusted-input boundary, purple the learning loop.
 
 | Layer | Choice |
@@ -60,7 +61,7 @@ Blue marks the model gateway, red the untrusted-input boundary, purple the learn
 | Language and runtime | Python 3.12, [uv](https://docs.astral.sh/uv/), `asyncio` (5 leads in flight) |
 | Data and validation | Pydantic v2 (domain types, settings, and the schemas model output must satisfy), SQLAlchemy 2.0 async, Alembic, PostgreSQL 16 (SQLite for tests and local mode) |
 | HTTP | FastAPI + uvicorn for the Evaboot webhook; `httpx` for Evaboot, Together AI and the research tools; `tenacity` for retries |
-| Models | Anthropic SDK (Claude writes and researches) and Together AI over its OpenAI-compatible API (Llama qualifies, Qwen critiques), all behind one gateway |
+| Models | Together AI only, over its OpenAI-compatible API, behind one gateway: GLM-5.3 (write, challenger), GLM-5.3 Flash (research, qualify), DeepSeek V4.1 Flash (critic) |
 | Observability and prompts | Langfuse: traces, scores, and prompt versions with `production` / `challenger` labels |
 | Approval and UI | `python-telegram-bot` (long polling), Streamlit (review queue and KPI page) |
 | Parsing and safety | `selectolax` (HTML to text), `defusedxml` (news RSS), `rapidfuzz` (edit distance) |
@@ -89,7 +90,7 @@ cp .env.example .env            # keys are only needed for real-model runs
 uv run sdr-loop run --fixture --fake-llm --limit 20
 uv run streamlit run app/streamlit_app.py     # review queue + KPIs
 
-# 2. Real models (ANTHROPIC_API_KEY, TOGETHER_API_KEY, Langfuse keys in .env)
+# 2. Real models (TOGETHER_API_KEY and Langfuse keys in .env)
 uv run sdr-loop prompts push                  # seed Langfuse prompt management
 uv run sdr-loop run --fixture --limit 20
 uv run sdr-loop bot                           # drafts arrive on Telegram
@@ -133,7 +134,7 @@ and are appended to the same trace.
 
 ```bash
 uv run pytest                  # 139 tests: mocked models, CSV fixtures, no network
-uv run pytest -m eval          # real models on the golden set (needs both API keys)
+uv run pytest -m eval          # real models on the golden set (needs TOGETHER_API_KEY)
 TEST_DATABASE_URL=postgresql+asyncpg://sdr:sdr@127.0.0.1:55432/sdr uv run pytest   # same suite on Postgres
 uv run python -m evals.critic_agreement export   # then fill in your scores, then `compare`
 ```
@@ -168,7 +169,7 @@ numbers or names the draft and facts did not contain are recorded as ungrounded 
 | Faithfulness | 100% | not run on real models |
 | Approval rate without edits | rises after each promotion | not run |
 | Average edit distance | falls after each promotion | not run |
-| Cost per qualified lead | < $0.05 | canned demo only; Together prices in `config.py` are approximate |
+| Cost per qualified lead | < $0.05 | canned demo only; prices in `config.py` come from Together's table (cached-input discounts ignored) |
 | p95 time per lead | < 60 s | not measured with real models |
 
 The Streamlit KPI page and `sdr_loop.kpis` compute these per prompt version from the database.

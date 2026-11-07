@@ -64,19 +64,19 @@ async def test_t4_outside_country_rejected_without_llm_call(
 ) -> None:
     q, ref = await qualify_lead(lead(country="BR"), ICP_)
     assert q.verdict == "not_fit" and ref == "rules"
-    assert fake_llm["together"].calls == [] and fake_llm["anthropic"].calls == []
+    assert fake_llm["judge"].calls == [] and fake_llm["writer"].calls == []
 
 
 async def test_llm_qualification_and_verdict_derived_from_score(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
-    fake_llm["together"].script = [
+    fake_llm["judge"].script = [
         json.dumps({"score": 82, "verdict": "maybe", "reasons": ["agency", "right role"]})
     ]
     q, ref = await qualify_lead(lead(), ICP_)
     assert q.verdict == "fit" and q.score == 82 and q.decided_by == "llm"  # score wins
     assert ref.startswith("qualify@")
-    sent = fake_llm["together"].calls[0]["messages"][0]["content"]
+    sent = fake_llm["judge"].calls[0]["messages"][0]["content"]
     assert "x@y.com" not in sent and "linkedin.com" not in sent  # no PII sent for qualification
 
 
@@ -84,10 +84,10 @@ async def test_t6_malformed_json_retry_then_fallback_returns_valid_object(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
     ok = json.dumps({"score": 30, "verdict": "not_fit", "reasons": ["wrong industry"]})
-    fake_llm["together"].script = ["oops", '{"score": "high"}', ok]  # 2 invalid on primary
+    fake_llm["judge"].script = ["oops", '{"score": "high"}', ok]  # 2 invalid on primary
     q, _ = await qualify_lead(lead(industry="Construction"), ICP_)
     assert q.verdict == "not_fit" and q.score == 30
-    assert len(fake_llm["together"].calls) == 3  # primary x2 (corrective retry) + fallback
+    assert len(fake_llm["judge"].calls) == 3  # primary x2 (corrective retry) + fallback
 
 
 def test_fixture_rule_archetypes_are_caught_by_rules() -> None:

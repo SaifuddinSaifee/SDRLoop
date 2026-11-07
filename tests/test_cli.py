@@ -58,7 +58,7 @@ def test_refuses_to_start_without_models_or_with_dry_run_off(
     cli_env: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     res = runner.invoke(app, ["run", "--fixture"])
-    assert res.exit_code == 1 and "ANTHROPIC_API_KEY" in res.output
+    assert res.exit_code == 1 and "TOGETHER_API_KEY" in res.output
     monkeypatch.setenv("DRY_RUN", "false")
     get_settings.cache_clear()
     res = runner.invoke(app, ["run", "--fixture", "--fake-llm"])

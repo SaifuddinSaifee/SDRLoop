@@ -1,4 +1,4 @@
-"""THE LLM gateway. No other module may import `anthropic` or call a model provider.
+"""THE LLM gateway. No other module may call a model provider.
 
 Responsibilities: routing (task -> primary/fallback model), timeouts, retries with backoff,
 JSON/schema validation with one corrective retry, fallback model, budget checks, cost
@@ -23,7 +23,7 @@ from pydantic import BaseModel, ValidationError
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from sdr_loop import budget
-from sdr_loop.config import ROUTES, ModelSpec, Settings, cost_usd, get_settings
+from sdr_loop.config import ROUTES, ModelSpec, Route, Settings, cost_usd, get_settings
 from sdr_loop.observability import get_tracer
 
 M = TypeVar("M", bound=BaseModel)
@@ -89,92 +89,42 @@ class Provider(Protocol):
 # --------------------------------------------------------------------------- providers
 
 
-class AnthropicProvider:
-    def __init__(self, api_key: str, timeout_s: float) -> None:
-        import anthropic
-
-        # SDK retries are off: the gateway owns retries/backoff/fallback.
-        self._client = anthropic.AsyncAnthropic(api_key=api_key, timeout=timeout_s, max_retries=0)
-
-    async def complete(
-        self,
-        model: str,
-        system: str,
-        messages: list[Message],
-        tools: list[ToolSpec] | None,
-        max_tokens: int,
-    ) -> RawResult:
-        import anthropic
-
-        kwargs: dict[str, Any] = {
-            "model": model,
-            "max_tokens": max_tokens,
-            "system": system,
-            "messages": _to_anthropic_messages(messages),
-        }
-        if tools:
-            kwargs["tools"] = [
-                {"name": t.name, "description": t.description, "input_schema": t.input_schema}
-                for t in tools
-            ]
-            kwargs["tool_choice"] = {"type": "auto"}  # forced tool_choice 400s on Claude 5.x
-        # Claude 5.x: no temperature/top_p, no prefill, no thinking param needed.
-        try:
-            resp = await self._client.messages.create(**kwargs)
-        except (anthropic.RateLimitError, anthropic.APIConnectionError) as e:
-            raise RetryableError(str(e)) from e
-        except anthropic.APIStatusError as e:
-            if e.status_code >= 500 or e.status_code in (408, 409, 429):
-                raise RetryableError(str(e)) from e
-            raise
-        text = "".join(b.text for b in resp.content if b.type == "text")
-        calls = [
-            ToolCall(b.id, b.name, dict(b.input)) for b in resp.content if b.type == "tool_use"
-        ]
-        return RawResult(
-            text, calls, resp.usage.input_tokens, resp.usage.output_tokens, resp.stop_reason or ""
-        )
+# Reasoning models spend completion tokens thinking before they answer, and the thinking shares the
+# max_tokens budget. Without headroom a tight cap yields an empty or truncated answer.
+GLM_PREFIX = "zai-org/GLM"
+GLM_HEADROOM = {"low": 1024, "medium": 4096, "high": 8192, "max": 16384}
+DEFAULT_HEADROOM = 2048
+_THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
 
-def _to_anthropic_messages(messages: list[Message]) -> list[Message]:
-    out: list[Message] = []
-    for m in messages:
-        role = m["role"]
-        if role == "user":
-            out.append({"role": "user", "content": m["content"]})
-        elif role == "assistant":
-            blocks: list[dict[str, Any]] = []
-            if m.get("content"):
-                blocks.append({"type": "text", "text": m["content"]})
-            for tc in m.get("tool_calls", []):
-                blocks.append(
-                    {"type": "tool_use", "id": tc["id"], "name": tc["name"], "input": tc["input"]}
-                )
-            out.append({"role": "assistant", "content": blocks})
-        elif role == "tool":
-            block = {
-                "type": "tool_result",
-                "tool_use_id": m["tool_call_id"],
-                "content": m["content"],
-            }
-            if out and out[-1]["role"] == "user" and isinstance(out[-1]["content"], list):
-                out[-1]["content"].append(block)  # parallel results share one user message
-            else:
-                out.append({"role": "user", "content": [block]})
-    return out
+def request_params(model: str, reasoning_effort: str) -> dict[str, Any]:
+    """Per-model sampling and reasoning settings. GLM-5.3 always thinks (it cannot be turned off);
+    `reasoning_effort` only shortens the trace. Together recommends temperature 1.0 / top_p 0.95."""
+    if model.startswith(GLM_PREFIX):
+        return {"temperature": 1.0, "top_p": 0.95, "reasoning_effort": reasoning_effort}
+    return {"temperature": 0.0}
+
+
+def clean_text(content: str | None) -> str:
+    """The answer only. Reasoning normally arrives in a separate field (reasoning_content); some
+    models inline <think>...</think> instead. Drop it so braces inside the thinking never reach the
+    JSON parser."""
+    return _THINK_BLOCK.sub("", content or "").strip()
 
 
 class TogetherProvider:
-    URL = "https://api.together.xyz/v1/chat/completions"
+    URL = "https://api.together.ai/v1/chat/completions"
 
     def __init__(
         self,
         api_key: str,
         timeout_s: float,
         client: httpx.AsyncClient | None = None,
+        reasoning_effort: str = "low",
     ) -> None:
         self._key = api_key
         self._client = client or httpx.AsyncClient(timeout=timeout_s)
+        self._effort = reasoning_effort
 
     async def complete(
         self,
@@ -184,13 +134,18 @@ class TogetherProvider:
         tools: list[ToolSpec] | None,
         max_tokens: int,
     ) -> RawResult:
+        headroom = (
+            GLM_HEADROOM.get(self._effort, DEFAULT_HEADROOM)
+            if model.startswith(GLM_PREFIX)
+            else DEFAULT_HEADROOM
+        )
         body: dict[str, Any] = {
             "model": model,
-            "max_tokens": max_tokens,
-            "temperature": 0.0,
+            "max_tokens": max_tokens + headroom,
             "messages": [{"role": "system", "content": system}, *_to_openai_messages(messages)],
+            **request_params(model, self._effort),
         }
-        if tools:
+        if tools:  # tool_choice is left at its default (auto)
             body["tools"] = [
                 {
                     "type": "function",
@@ -212,20 +167,21 @@ class TogetherProvider:
             raise RetryableError(f"together {r.status_code}")
         r.raise_for_status()
         data = r.json()
-        msg = data["choices"][0]["message"]
+        choice = data["choices"][0]
+        msg = choice["message"]  # msg["reasoning_content"] / ["reasoning"] are deliberately ignored
         calls = [
             ToolCall(
                 tc["id"], tc["function"]["name"], json.loads(tc["function"]["arguments"] or "{}")
             )
             for tc in msg.get("tool_calls") or []
         ]
-        usage = data.get("usage", {})
+        usage = data.get("usage", {})  # completion_tokens includes reasoning tokens
         return RawResult(
-            msg.get("content") or "",
+            clean_text(msg.get("content")),
             calls,
             usage.get("prompt_tokens", 0),
             usage.get("completion_tokens", 0),
-            data["choices"][0].get("finish_reason", ""),
+            choice.get("finish_reason", ""),
         )
 
 
@@ -313,7 +269,9 @@ class LLMGateway:
         *,
         backoff_base: float = 1.0,
         max_attempts: int = 3,
+        routes: dict[str, Route] | None = None,
     ) -> None:
+        self.routes = routes if routes is not None else ROUTES
         self.providers = providers
         self.settings = settings or get_settings()
         self.backoff_base = backoff_base
@@ -328,9 +286,9 @@ class LLMGateway:
         response_model: type[M] | None = None,
         tools: list[ToolSpec] | None = None,
         max_tokens: int = 2000,
-        routes: dict[str, Any] | None = None,
+        routes: dict[str, Route] | None = None,
     ) -> LLMResult:
-        route = (routes or ROUTES)[task]
+        route = (routes or self.routes)[task]
         specs: list[ModelSpec] = [route.primary] + ([route.fallback] if route.fallback else [])
         if response_model is not None:
             schema = json.dumps(response_model.model_json_schema())
@@ -461,10 +419,10 @@ def get_gateway() -> LLMGateway:
     if _gateway is None:
         s = get_settings()
         providers: dict[str, Provider] = {}
-        if s.anthropic_api_key:
-            providers["anthropic"] = AnthropicProvider(s.anthropic_api_key, s.llm_timeout_s)
         if s.together_api_key:
-            providers["together"] = TogetherProvider(s.together_api_key, s.llm_timeout_s)
+            providers["together"] = TogetherProvider(
+                s.together_api_key, s.llm_timeout_s, reasoning_effort=s.glm_reasoning_effort
+            )
         _gateway = LLMGateway(providers, s)
     return _gateway
 

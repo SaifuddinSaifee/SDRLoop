@@ -61,18 +61,18 @@ class World:
             "prompt": f"{MARK} Cite fact ids in claims. Be TIGHT.",
             "rationale": "shorter",
         }
-        fakes["anthropic"].script = self.anthropic
-        fakes["together"].script = self.together
+        fakes["writer"].script = self.writer
+        fakes["judge"].script = self.judge
         self.fakes = fakes
 
-    def anthropic(self, model: str, system: str, messages: Any, tools: Any) -> str:
+    def writer(self, model: str, system: str, messages: Any, tools: Any) -> str:
         if system.startswith("You improve a cold-email WRITER"):
             return json.dumps(self.proposal)
         who = self.challenger if MARK in system else self.champion
         company = json.loads(messages[0]["content"])["lead"]["company"]
         return who(company).model_dump_json()
 
-    def together(self, model: str, system: str, messages: Any, tools: Any) -> str:
+    def judge(self, model: str, system: str, messages: Any, tools: Any) -> str:
         tight = "TIGHT" in messages[0]["content"]
         v = 5 if tight else 3
         r = dict.fromkeys(["faithfulness", "personalisation", "clarity", "tone"], "x")
@@ -81,7 +81,7 @@ class World:
 
     @property
     def writer_calls(self) -> int:
-        return len(self.fakes["anthropic"].calls)
+        return len(self.fakes["writer"].calls)
 
 
 async def seed_decisions(
@@ -308,12 +308,12 @@ async def test_negative_case_scores_zero_when_the_rejected_behaviour_repeats(
         (70, "also fails the 90-word code check, so the critic never runs"),
     )
     for words, why in cases:
-        fake_llm["anthropic"].script = [seq(False, words=words).model_dump_json()] * 2
-        fake_llm["together"].script = [good_critic] * 2
+        fake_llm["writer"].script = [seq(False, words=words).model_dump_json()] * 2
+        fake_llm["judge"].script = [good_critic] * 2
         repeated = await score_item(p, Item("k", "cases", lead, [FACT], reject_reason="too_long"))
         assert repeated.repeated_rejection and repeated.score == 0.0, why
-    fake_llm["anthropic"].script = [seq(False, words=0).model_dump_json()]
-    fake_llm["together"].script = [good_critic]
+    fake_llm["writer"].script = [seq(False, words=0).model_dump_json()]
+    fake_llm["judge"].script = [good_critic]
     fine = await score_item(p, Item("k2", "cases", lead, [FACT], reject_reason="too_long"))
     assert not fine.repeated_rejection and fine.score > 0.9
 

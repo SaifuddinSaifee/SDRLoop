@@ -49,10 +49,8 @@ async def _open_repo(s: Settings) -> Repository:
 
 
 def _require_real_models(s: Settings) -> None:
-    missing = [k for k, v in (("ANTHROPIC_API_KEY", s.anthropic_api_key),
-                              ("TOGETHER_API_KEY", s.together_api_key)) if not v]  # fmt: skip
-    if missing:
-        raise _fail(f"Missing {', '.join(missing)} in .env (or use --fake-llm for a canned demo).")
+    if not s.together_api_key:
+        raise _fail("Missing TOGETHER_API_KEY in .env (or use --fake-llm for a canned demo).")
 
 
 async def _always_public(_host: str) -> bool:

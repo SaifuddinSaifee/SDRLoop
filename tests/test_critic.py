@@ -93,7 +93,7 @@ def test_faithfulness_rate() -> None:
 async def test_t12_code_failure_skips_the_llm_critic(fake_llm: dict[str, FakeProvider]) -> None:
     r = await review(lead(), FACTS, seq(e1=email("word " * 95 + "Open to a call?")))
     assert not r.passed and r.scores is None
-    assert fake_llm["together"].calls == []
+    assert fake_llm["judge"].calls == []
 
 
 async def test_t13_invented_fact_scores_low_and_goes_back_to_writer(
@@ -106,19 +106,19 @@ async def test_t13_invented_fact_scores_low_and_goes_back_to_writer(
         )
     )
     good = seq()
-    fake_llm["anthropic"].script = [bad.model_dump_json(), good.model_dump_json()]
+    fake_llm["writer"].script = [bad.model_dump_json(), good.model_dump_json()]
     # critic wrongly rates faithfulness 5 but lists the uncited claim: code caps it at 2
-    fake_llm["together"].script = [scores(f=5, uncited=[invented]), scores()]
+    fake_llm["judge"].script = [scores(f=5, uncited=[invented]), scores()]
     out = await write_with_critic(lead(), FACTS)
     assert out.attempts == 2 and not out.flagged and out.report.passed
-    first_review = fake_llm["together"].calls[0]
+    first_review = fake_llm["judge"].calls[0]
     assert invented in first_review["messages"][0]["content"]
-    rewrite = fake_llm["anthropic"].calls[1]["messages"][0]["content"]
+    rewrite = fake_llm["writer"].calls[1]["messages"][0]["content"]
     assert "uncited claim" in rewrite  # critic notes reached the writer
 
 
 async def test_capped_faithfulness_blocks_pass(fake_llm: dict[str, FakeProvider]) -> None:
-    fake_llm["together"].script = [scores(f=5, uncited=["made up"])]
+    fake_llm["judge"].script = [scores(f=5, uncited=["made up"])]
     r = await review(lead(), FACTS, seq())
     assert r.scores is not None and r.scores.faithfulness == 2 and not r.passed
 
@@ -127,16 +127,16 @@ async def test_e8_second_failure_is_flagged_not_retried_forever(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
     ghost = seq(e1=email(claims=[Claim(text="x", fact_ids=["f9"])]))
-    fake_llm["anthropic"].script = [ghost.model_dump_json(), ghost.model_dump_json()]
+    fake_llm["writer"].script = [ghost.model_dump_json(), ghost.model_dump_json()]
     out = await write_with_critic(lead(), FACTS)
     assert out.attempts == 2 and "critic_failed" in out.flags and out.flagged
-    assert len(fake_llm["anthropic"].calls) == 2 and fake_llm["together"].calls == []
+    assert len(fake_llm["writer"].calls) == 2 and fake_llm["judge"].calls == []
 
 
 async def test_first_pass_success_makes_one_write_one_critic_call(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
-    fake_llm["anthropic"].script = [seq().model_dump_json()]
-    fake_llm["together"].script = [scores()]
+    fake_llm["writer"].script = [seq().model_dump_json()]
+    fake_llm["judge"].script = [scores()]
     out = await write_with_critic(lead(), FACTS)
     assert out.attempts == 1 and out.report.passed and out.flags == []

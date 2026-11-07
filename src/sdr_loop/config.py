@@ -8,14 +8,12 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-Provider = Literal["anthropic", "together", "fake"]
 Task = Literal["qualify", "research", "write", "critic", "challenger"]
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    anthropic_api_key: str = ""
     together_api_key: str = ""
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
@@ -39,7 +37,11 @@ class Settings(BaseSettings):
     per_lead_token_cap: int = 40_000
     per_run_usd_cap: float = 5.0
     max_tool_calls: int = 3
-    llm_timeout_s: float = 60.0
+    llm_timeout_s: float = (
+        90.0  # GLM thinks before answering: allow more than a non-reasoning model
+    )
+    # GLM-5.3 always thinks; this only shortens the trace (low | medium | high | max).
+    glm_reasoning_effort: str = "low"
 
 
 @lru_cache
@@ -49,7 +51,7 @@ def get_settings() -> Settings:
 
 @dataclass(frozen=True)
 class ModelSpec:
-    provider: Provider
+    provider: str  # key into the gateway's provider registry ("together" in production)
     model: str
 
 
@@ -59,31 +61,29 @@ class Route:
     fallback: ModelSpec | None = None
 
 
-# Defaults. The qualify/critic Together model ids are confirmed in the day-2 bakeoff.
+GLM = "zai-org/GLM-5.3"
+GLM_FLASH = "zai-org/GLM-5.3-Flash"
+DEEPSEEK_FLASH = "deepseek-ai/DeepSeek-V4.1-Flash"
+DEEPSEEK_PRO = "deepseek-ai/DeepSeek-V4-Pro-0813"
+
+# Everything runs on Together AI. The critic must come from a different model family than the
+# writer (a model grading its own style is too lenient): GLM writes, DeepSeek critiques.
+# Model ids are from Together's serverless model table; they have not been exercised live yet.
 ROUTES: dict[str, Route] = {
-    "write": Route(
-        ModelSpec("anthropic", "claude-sonnet-5-5"), ModelSpec("anthropic", "claude-haiku-5-5")
-    ),
-    "research": Route(ModelSpec("anthropic", "claude-haiku-5-5")),
-    "challenger": Route(ModelSpec("anthropic", "claude-sonnet-5-5")),
-    "qualify": Route(
-        ModelSpec("together", "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
-        ModelSpec("together", "Qwen/Qwen2.5-72B-Instruct-Turbo"),
-    ),
-    "critic": Route(
-        ModelSpec("together", "Qwen/Qwen2.5-72B-Instruct-Turbo"),
-        ModelSpec("together", "deepseek-ai/DeepSeek-V3"),
-    ),
+    "write": Route(ModelSpec("together", GLM), ModelSpec("together", GLM_FLASH)),
+    "challenger": Route(ModelSpec("together", GLM), ModelSpec("together", GLM_FLASH)),
+    "research": Route(ModelSpec("together", GLM_FLASH), ModelSpec("together", GLM)),
+    "qualify": Route(ModelSpec("together", GLM_FLASH), ModelSpec("together", DEEPSEEK_FLASH)),
+    "critic": Route(ModelSpec("together", DEEPSEEK_FLASH), ModelSpec("together", DEEPSEEK_PRO)),
 }
 
-# USD per 1M tokens (input, output). Together prices are approximate; check before reporting KPIs.
+# USD per 1M tokens (input, output), from Together's serverless table. Cached-input discounts are
+# ignored, so reported cost is a slight overestimate.
 PRICES: dict[str, tuple[float, float]] = {
-    "claude-sonnet-5-5": (2.00, 10.00),
-    "claude-haiku-5-5": (0.10, 0.50),
-    "claude-opus-5-5": (4.00, 20.00),
-    "meta-llama/Llama-3.3-70B-Instruct-Turbo": (0.88, 0.88),
-    "Qwen/Qwen2.5-72B-Instruct-Turbo": (1.20, 1.20),
-    "deepseek-ai/DeepSeek-V3": (1.25, 1.25),
+    GLM: (1.40, 4.40),
+    GLM_FLASH: (0.15, 0.50),
+    DEEPSEEK_FLASH: (0.30, 1.20),
+    DEEPSEEK_PRO: (1.32, 3.96),
     "fake-model": (1.00, 1.00),
 }
 

@@ -10,7 +10,7 @@ import json
 import re
 from typing import Any
 
-from sdr_loop.config import Settings
+from sdr_loop.config import ROUTES, ModelSpec, Route, Settings
 from sdr_loop.llm import FakeProvider, LLMGateway, Message, RawResult, ToolCall, ToolSpec
 
 TARGET_INDUSTRIES = {
@@ -26,7 +26,7 @@ def _user_json(messages: list[Message]) -> dict[str, Any]:
     return data
 
 
-def together_script(
+def judge_script(
     model: str, system: str, messages: list[Message], tools: list[ToolSpec] | None
 ) -> RawResult | str:
     if system.startswith("You qualify"):
@@ -45,10 +45,10 @@ def together_script(
             {"faithfulness": 5, "personalisation": 4, "clarity": 5, "tone": 5,
              "reasons": r, "uncited_claims": []}
         )  # fmt: skip
-    raise AssertionError(f"together_script: unexpected prompt {system[:40]!r}")
+    raise AssertionError(f"judge_script: unexpected prompt {system[:40]!r}")
 
 
-def anthropic_script(
+def writer_script(
     model: str, system: str, messages: list[Message], tools: list[ToolSpec] | None
 ) -> RawResult | str:
     if system.startswith("You research"):
@@ -82,12 +82,29 @@ def anthropic_script(
             "claims": [],
         }
         return json.dumps({"email_1": e1, "email_2": e2})
-    raise AssertionError(f"anthropic_script: unexpected prompt {system[:40]!r}")
+    raise AssertionError(f"writer_script: unexpected prompt {system[:40]!r}")
+
+
+# Which side of the fake pair answers each task. "writer" mirrors the writer model's tasks and
+# "judge" the qualifier/critic, so tests can script them independently.
+FAKE_SIDE = {"write": "writer", "research": "writer", "challenger": "writer",
+             "qualify": "judge", "critic": "judge"}  # fmt: skip
+
+
+def routes_for_fakes() -> dict[str, Route]:
+    """The real route table (real model ids, so prices match) re-pointed at fake providers."""
+    out = {}
+    for task, r in ROUTES.items():
+        side = FAKE_SIDE[task]
+        fb = ModelSpec(side, r.fallback.model) if r.fallback else None
+        out[task] = Route(ModelSpec(side, r.primary.model), fb)
+    return out
 
 
 def fake_gateway(settings: Settings, *, backoff_base: float = 0.0) -> LLMGateway:
     return LLMGateway(
-        {"anthropic": FakeProvider(anthropic_script), "together": FakeProvider(together_script)},
+        {"writer": FakeProvider(writer_script), "judge": FakeProvider(judge_script)},
         settings,
         backoff_base=backoff_base,
+        routes=routes_for_fakes(),
     )

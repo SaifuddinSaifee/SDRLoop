@@ -9,6 +9,7 @@ import pytest
 from sdr_loop import budget
 from sdr_loop.config import Settings, get_settings
 from sdr_loop.db.schema import Base
+from sdr_loop.demo import routes_for_fakes
 from sdr_loop.llm import FakeProvider, LLMGateway, set_gateway
 from sdr_loop.memory import Repository
 from sdr_loop.observability import InMemoryTracer, set_tracer
@@ -34,7 +35,7 @@ def tracer() -> Iterator[InMemoryTracer]:
 
 
 SECRETS = (
-    "ANTHROPIC_API_KEY", "TOGETHER_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
+    "TOGETHER_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
     "EVABOOT_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "PUBLIC_WEBHOOK_URL",
 )  # fmt: skip
 
@@ -71,8 +72,10 @@ async def repo(settings: Settings) -> AsyncIterator[Repository]:
 
 @pytest.fixture
 def fake_llm(settings: Settings, tracer: InMemoryTracer) -> Iterator[dict[str, FakeProvider]]:
-    """Gateway wired to one FakeProvider per family. Tests set `.script` on each."""
-    fakes = {"anthropic": FakeProvider(), "together": FakeProvider()}
-    set_gateway(LLMGateway(dict(fakes), settings, backoff_base=0))  # type: ignore[arg-type]
+    """Gateway wired to two FakeProviders: "writer" (write/research/challenger) and "judge"
+    (qualify/critic), on the real route table's model ids. Tests set `.script` on each."""
+    fakes = {"writer": FakeProvider(), "judge": FakeProvider()}
+    gateway = LLMGateway(dict(fakes), settings, backoff_base=0, routes=routes_for_fakes())  # type: ignore[arg-type]
+    set_gateway(gateway)
     yield fakes
     set_gateway(None)

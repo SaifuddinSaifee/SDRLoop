@@ -37,22 +37,22 @@ def seq_json(claims: list[dict[str, object]]) -> str:
 async def test_t10_draft_claims_cite_fact_ids_and_input_has_facts_but_no_email(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
-    fake_llm["anthropic"].script = [
+    fake_llm["writer"].script = [
         seq_json([{"text": "Atlas Growth was founded in 2022", "fact_ids": ["f1"]}])
     ]
     seq, ref = await write_sequence(lead(), FACTS)
     assert seq.email_1.claims[0].fact_ids == ["f1"] and ref.startswith("writer@")
-    sent = fake_llm["anthropic"].calls[0]["messages"][0]["content"]
+    sent = fake_llm["writer"].calls[0]["messages"][0]["content"]
     assert '"id": "f1"' in sent and "a@atlas.example" not in sent
 
 
 async def test_t11_zero_facts_means_no_personal_claims_and_flag(
     fake_llm: dict[str, FakeProvider],
 ) -> None:
-    fake_llm["anthropic"].script = [seq_json([])]
+    fake_llm["writer"].script = [seq_json([])]
     seq, _ = await write_sequence(lead(), [])
     assert seq.email_1.claims == [] and seq.email_2.claims == []
-    assert '"facts": []' in fake_llm["anthropic"].calls[0]["messages"][0]["content"]
+    assert '"facts": []' in fake_llm["writer"].calls[0]["messages"][0]["content"]
     assert flags_for(lead(), []) == ["no_facts"]
 
 
@@ -62,6 +62,6 @@ def test_non_english_market_is_flagged() -> None:
 
 
 async def test_revision_notes_reach_the_writer(fake_llm: dict[str, FakeProvider]) -> None:
-    fake_llm["anthropic"].script = [seq_json([])]
+    fake_llm["writer"].script = [seq_json([])]
     await write_sequence(lead(), FACTS, revision_notes="too long")
-    assert "too long" in fake_llm["anthropic"].calls[0]["messages"][0]["content"]
+    assert "too long" in fake_llm["writer"].calls[0]["messages"][0]["content"]

@@ -11,7 +11,7 @@ from evals.golden import golden_leads
 from sdr_loop import llm
 from sdr_loop.bot.controller import BotController
 from sdr_loop.config import Settings
-from sdr_loop.demo import anthropic_script, together_script
+from sdr_loop.demo import judge_script, routes_for_fakes, writer_script
 from sdr_loop.llm import FakeProvider, LLMGateway, RawResult
 from sdr_loop.memory import Repository
 from sdr_loop.observability import InMemoryTracer
@@ -44,8 +44,8 @@ def records(n_fit: int, n_other: int = 0) -> list[dict[str, Any]]:
 
 def wire(settings: Settings, **overrides: Any) -> tuple[Settings, dict[str, FakeProvider]]:
     s = settings.model_copy(update={"telegram_chat_id": "42", **overrides})
-    fakes = {"anthropic": FakeProvider(anthropic_script), "together": FakeProvider(together_script)}
-    llm.set_gateway(LLMGateway(dict(fakes), s, backoff_base=0))  # type: ignore[arg-type]
+    fakes = {"writer": FakeProvider(writer_script), "judge": FakeProvider(judge_script)}
+    llm.set_gateway(LLMGateway(dict(fakes), s, backoff_base=0, routes=routes_for_fakes()))  # type: ignore[arg-type]
     return s, fakes
 
 
@@ -111,7 +111,7 @@ async def test_non_fit_leads_stop_at_qualify_and_never_reach_research_or_approva
     s, fakes = wire(settings)
     run = await new_run(repo, records(0, 6))
     report = await pipeline(repo, s).run(run)
-    assert set(report.counts) <= {"not_fit", "maybe"} and fakes["anthropic"].calls == []
+    assert set(report.counts) <= {"not_fit", "maybe"} and fakes["writer"].calls == []
     assert await repo.drafts_with_status("pending_approval") == []
     names = {x.name for t in tracer.traces for x in t.step_spans()}
     assert names == {"extract", "qualify"}
@@ -120,16 +120,25 @@ async def test_non_fit_leads_stop_at_qualify_and_never_reach_research_or_approva
 async def test_t20_run_budget_stops_cleanly_and_no_partial_draft_reaches_approval(
     repo: Repository, settings: Settings, tracer: InMemoryTracer
 ) -> None:
-    s, fakes = wire(settings, per_run_usd_cap=0.10, per_lead_usd_cap=10.0, concurrency=1)
-    big = anthropic_script
+    # lift the per-lead caps so this test exercises the PER-RUN dollar cap in isolation
+    s, fakes = wire(
+        settings,
+        per_run_usd_cap=0.10,
+        per_lead_usd_cap=10.0,
+        per_lead_token_cap=10**7,
+        concurrency=1,
+    )
+    big = writer_script
 
     def expensive(model: str, system: str, messages: Any, tools: Any) -> Any:
         out = big(model, system, messages, tools)
         if isinstance(out, str):
-            return RawResult(text=out, input_tokens=30_000, output_tokens=5_000)  # ~$0.11 on Sonnet
+            return RawResult(
+                text=out, input_tokens=60_000, output_tokens=10_000
+            )  # ~$0.13 on GLM-5.3
         return out
 
-    fakes["anthropic"].script = expensive
+    fakes["writer"].script = expensive
     run = await new_run(repo, records(3))
     report = await pipeline(repo, s).run(run)
     assert report.status == "budget_exceeded"
@@ -153,7 +162,7 @@ async def test_e18_crash_resumes_from_last_finished_stage_without_repeating_work
 ) -> None:
     s, fakes = wire(settings)
     run = await new_run(repo, records(2))
-    real = anthropic_script
+    real = writer_script
     state = {"boom": True}
 
     def flaky(model: str, system: str, messages: Any, tools: Any) -> Any:
@@ -161,21 +170,19 @@ async def test_e18_crash_resumes_from_last_finished_stage_without_repeating_work
             raise RuntimeError("process died")
         return real(model, system, messages, tools)
 
-    fakes["anthropic"].script = flaky
+    fakes["writer"].script = flaky
     r1 = await pipeline(repo, s).run(run)
     assert r1.counts == {"failed": 2}
     assert all(row.stage == "researched" for row in await repo.list_leads(run))
-    qualify_calls = len(
-        [c for c in fakes["together"].calls if c["system"].startswith("You qualify")]
-    )
+    qualify_calls = len([c for c in fakes["judge"].calls if c["system"].startswith("You qualify")])
     research_calls = len(
-        [c for c in fakes["anthropic"].calls if c["system"].startswith("You research")]
+        [c for c in fakes["writer"].calls if c["system"].startswith("You research")]
     )
 
     state["boom"] = False
     r2 = await pipeline(repo, s).run(run)
     assert r2.counts == {"pending_approval": 2}
-    after = fakes["together"].calls + fakes["anthropic"].calls
+    after = fakes["judge"].calls + fakes["writer"].calls
     assert len([c for c in after if c["system"].startswith("You qualify")]) == qualify_calls
     assert len([c for c in after if c["system"].startswith("You research")]) == research_calls
     assert len(await repo.drafts_with_status("pending_approval")) == 2
@@ -184,7 +191,7 @@ async def test_e18_crash_resumes_from_last_finished_stage_without_repeating_work
 async def test_one_failing_lead_does_not_kill_the_run(repo: Repository, settings: Settings) -> None:
     s, fakes = wire(settings)
     run = await new_run(repo, records(3))
-    real = anthropic_script
+    real = writer_script
     seen = {"n": 0}
 
     def one_bad(model: str, system: str, messages: Any, tools: Any) -> Any:
@@ -194,7 +201,7 @@ async def test_one_failing_lead_does_not_kill_the_run(repo: Repository, settings
                 raise RuntimeError("provider exploded")
         return real(model, system, messages, tools)
 
-    fakes["anthropic"].script = one_bad
+    fakes["writer"].script = one_bad
     report = await pipeline(repo, s).run(run)
     assert report.counts == {"pending_approval": 2, "failed": 1}
     failed = [r for r in await repo.list_leads(run) if r.status == "failed"]
@@ -222,13 +229,14 @@ async def test_concurrency_is_bounded(repo: Repository, settings: Settings) -> N
                 await asyncio.sleep(0.05)  # stay in flight so a missing semaphore would overshoot
             finally:
                 live["now"] -= 1
-            out = together_script(model, system, messages, tools)
+            out = judge_script(model, system, messages, tools)
             return RawResult(text=out) if isinstance(out, str) else out
 
     gateway = LLMGateway(
-        {"together": Gate(), "anthropic": FakeProvider(anthropic_script)},  # type: ignore[dict-item]
+        {"judge": Gate(), "writer": FakeProvider(writer_script)},  # type: ignore[dict-item]
         s,
         backoff_base=0,
+        routes=routes_for_fakes(),
     )
     llm.set_gateway(gateway)
     run = await new_run(repo, records(0, 10))  # non-fit leads: one (gated) qualify call each
@@ -240,9 +248,9 @@ async def test_rerun_of_a_finished_run_does_nothing(repo: Repository, settings: 
     s, fakes = wire(settings)
     run = await new_run(repo, records(1))
     await pipeline(repo, s).run(run)
-    n = len(fakes["anthropic"].calls) + len(fakes["together"].calls)
+    n = len(fakes["writer"].calls) + len(fakes["judge"].calls)
     r2 = await pipeline(repo, s).run(run)
-    assert r2.outcomes == [] and len(fakes["anthropic"].calls) + len(fakes["together"].calls) == n
+    assert r2.outcomes == [] and len(fakes["writer"].calls) + len(fakes["judge"].calls) == n
 
 
 _ = json
