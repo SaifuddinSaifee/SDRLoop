@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import pytest
 
 from sdr_loop import budget
 from sdr_loop.config import Settings, get_settings
+from sdr_loop.db.schema import Base
 from sdr_loop.llm import FakeProvider, LLMGateway, set_gateway
 from sdr_loop.memory import Repository
 from sdr_loop.observability import InMemoryTracer, set_tracer
@@ -14,9 +16,11 @@ from sdr_loop.observability import InMemoryTracer, set_tracer
 
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
+    # TEST_DATABASE_URL=postgresql+asyncpg://... runs the whole suite against Postgres.
     return Settings(
         _env_file=None,  # type: ignore[call-arg]
-        database_url=f"sqlite+aiosqlite:///{tmp_path}/test.db",
+        database_url=os.environ.get("TEST_DATABASE_URL")
+        or f"sqlite+aiosqlite:///{tmp_path}/test.db",
         outbox_path=str(tmp_path / "outbox.jsonl"),
         offline=True,
     )
@@ -58,6 +62,8 @@ def _reset_budgets() -> Iterator[None]:
 @pytest.fixture
 async def repo(settings: Settings) -> AsyncIterator[Repository]:
     r = Repository(settings.database_url)
+    async with r.engine.begin() as conn:  # clean slate (matters when the DB is shared: Postgres)
+        await conn.run_sync(Base.metadata.drop_all)
     await r.init_schema()
     yield r
     await r.close()

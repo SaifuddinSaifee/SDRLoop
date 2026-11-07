@@ -28,6 +28,14 @@ app.add_typer(prompts_app, name="prompts")
 FIXTURE_CSV = Path("fixtures/evaboot_export.csv")
 
 
+def _setup_logging() -> None:
+    """INFO for our code. httpx/httpcore log full request URLs, which for Telegram contain the bot
+    token (api.telegram.org/bot<TOKEN>/...), so they are held at WARNING: keys never reach logs."""
+    logging.basicConfig(level=logging.INFO)
+    for noisy in ("httpx", "httpcore", "telegram", "apscheduler"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+
 def _fail(msg: str) -> typer.Exit:
     typer.secho(msg, fg=typer.colors.RED, err=True)
     return typer.Exit(1)
@@ -88,7 +96,7 @@ def run(
     icp_path: Annotated[Path, typer.Option("--icp")] = Path("icp.yaml"),
 ) -> None:
     """Extract, qualify, research, write and critique; drafts then await approval on Telegram."""
-    logging.basicConfig(level=logging.INFO)
+    _setup_logging()
     s = get_settings()
     if not s.dry_run:
         raise _fail("DRY_RUN=false: v1 has no sending adapters. Refusing to start.")
@@ -154,7 +162,7 @@ def bot() -> None:
     from sdr_loop.bot.controller import BotController
     from sdr_loop.bot.telegram import build_application
 
-    logging.basicConfig(level=logging.INFO)
+    _setup_logging()
     s = get_settings()
     if not (s.telegram_bot_token and s.telegram_chat_id):
         raise _fail("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env.")
@@ -179,7 +187,7 @@ def learn() -> None:
     """One learning cycle: edits/rejections -> challenger -> champion vs challenger -> promote?"""
     from sdr_loop.learn.cycle import run_learning_cycle
 
-    logging.basicConfig(level=logging.INFO)
+    _setup_logging()
     s = get_settings()
     _require_real_models(s)
     tracer = init_tracer_from_settings()

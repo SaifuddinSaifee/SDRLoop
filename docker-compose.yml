@@ -1,0 +1,66 @@
+# Local stack: Postgres + migrations + webhook API + Telegram bot.
+#   docker compose up -d --build
+#   docker compose run --rm cli run --fixture            # real models (needs keys in .env)
+#   docker compose run --rm cli run --fixture --fake-llm # canned demo, no keys
+name: sdrloop
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: infra/Dockerfile
+  env_file:
+    - path: .env
+      required: false
+  environment: &env
+    DATABASE_URL: postgresql+asyncpg://sdr:sdr@postgres:5432/sdr
+    OUTBOX_PATH: /data/outbox.jsonl
+  volumes:
+    - ./data:/data
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sdr
+      POSTGRES_PASSWORD: sdr
+      POSTGRES_DB: sdr
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${PG_PORT:-55432}:5432"   # localhost only: for dev tools and the Postgres test run
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdr -d sdr"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["alembic", "upgrade", "head"]
+    command: []
+    restart: "no"
+
+  api:
+    <<: *app
+    command: ["api", "--port", "8000"]
+    ports:
+      - "${API_PORT:-8000}:8000"
+    restart: unless-stopped
+
+  bot:
+    <<: *app
+    command: ["bot"]
+    restart: unless-stopped
+
+  cli:
+    <<: *app
+    profiles: ["cli"]
+
+volumes:
+  pgdata:

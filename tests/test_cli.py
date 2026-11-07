@@ -68,3 +68,13 @@ def test_refuses_to_start_without_models_or_with_dry_run_off(
 def test_run_requires_an_input() -> None:
     res = runner.invoke(app, ["run", "--fake-llm"])
     assert res.exit_code == 1
+
+
+def test_http_client_loggers_are_silenced_so_tokens_never_reach_logs() -> None:
+    import logging
+
+    from sdr_loop.cli import _setup_logging
+
+    _setup_logging()
+    for name in ("httpx", "httpcore", "telegram"):
+        assert logging.getLogger(name).getEffectiveLevel() >= logging.WARNING

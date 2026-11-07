@@ -71,7 +71,7 @@ class BotController:
         if d.status != "pending_approval":
             return Reply(f"Draft #{draft_id} was already {d.status}.")
         if kind == "a":
-            await self._decide(draft_id, "approve")
+            await self.decide(draft_id, "approve")
             return Reply(f"✅ Draft #{draft_id} approved and written to the outbox (dry run).")
         if kind == "e":
             self._editing[str(chat_id)] = draft_id
@@ -87,7 +87,7 @@ class BotController:
                  [(r.replace("_", " "), f"rr:{draft_id}:{r}") for r in ap.REJECT_REASONS[3:]]],
             )  # fmt: skip
         if kind == "rr":
-            await self._decide(draft_id, "reject", reason=rest.split(":")[1])
+            await self.decide(draft_id, "reject", reason=rest.split(":")[1])
             return Reply(f"🗑 Draft #{draft_id} rejected. Thanks, this feeds the learning loop.")
         log.warning("unknown callback %r", data)
         return None
@@ -100,7 +100,7 @@ class BotController:
         if draft_id is None:
             return Reply("Nothing to edit. Tap Edit under a draft first.")
         try:
-            await self._decide(draft_id, "edit", new_text=text)
+            await self.decide(draft_id, "edit", new_text=text)
         except ap.EditFormatError as e:
             return Reply(f"Could not parse that: {e}", force_reply=True)
         del self._editing[str(chat_id)]
@@ -110,7 +110,7 @@ class BotController:
 
     # ------------------------------------------------------------------ decisions
 
-    async def _decide(
+    async def decide(
         self, draft_id: int, action: str, *, reason: str | None = None, new_text: str | None = None
     ) -> None:
         """Record the human decision, then (approve/edit only) write the outbox. Both are steps of

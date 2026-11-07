@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --frozen
+      - run: uv sync --frozen --extra ui
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --frozen
+      - run: uv sync --frozen --extra ui
       - name: Run evals (skipped when API secrets are absent, e.g. forks)
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ] || [ -z "$TOGETHER_API_KEY" ]; then
