@@ -36,12 +36,33 @@ def _local_versions(name: str) -> list[tuple[int, Path]]:
     return sorted(found)
 
 
+def _champion_file(name: str) -> Path:
+    return PROMPT_DIR / f"{name}.champion"
+
+
+def _champion_n(name: str) -> int | None:
+    f = _champion_file(name)
+    return int(f.read_text().strip()) if f.exists() else None
+
+
 def get_local(name: str, version: int | None = None) -> PromptVersion:
+    """A local prompt version. Default = the champion (pointer file) or else the latest file."""
     versions = _local_versions(name)
     if not versions:
         raise FileNotFoundError(f"no local prompt for {name}")
-    n, path = versions[-1] if version is None else next(v for v in versions if v[0] == version)
+    if version is None:
+        version = _champion_n(name) or versions[-1][0]
+    n, path = next(v for v in versions if v[0] == version)
     return PromptVersion(name, path.read_text(), f"local-{n}")
+
+
+def _use_langfuse() -> bool:
+    s = get_settings()
+    return not s.offline and bool(s.langfuse_public_key and s.langfuse_secret_key)
+
+
+def version_number(pv: PromptVersion) -> int:
+    return int(pv.version.split("-")[1])
 
 
 def langfuse_client() -> Any:
@@ -56,9 +77,50 @@ def langfuse_client() -> Any:
     return _client
 
 
+def get_challenger(name: str) -> PromptVersion | None:
+    """The newest unpromoted candidate, if any."""
+    if _use_langfuse():
+        try:
+            p = langfuse_client().get_prompt(name, label="challenger", type="text", max_retries=1)
+            return PromptVersion(name, p.prompt, f"lf-{p.version}")
+        except Exception:
+            return None
+    champ = _champion_n(name) or 0
+    latest = _local_versions(name)[-1][0]
+    return get_local(name, latest) if latest > champ else None
+
+
+def save_challenger(name: str, text: str) -> PromptVersion:
+    """Store a candidate prompt labelled `challenger`. It never becomes live by itself."""
+    if _use_langfuse():
+        p = langfuse_client().create_prompt(
+            name=name, prompt=text, labels=["challenger"], type="text"
+        )
+        return PromptVersion(name, text, f"lf-{p.version}")
+    latest = _local_versions(name)[-1][0]
+    if _champion_n(name) is None:  # pin today's champion before adding a newer file
+        _champion_file(name).write_text(str(latest))
+    n = latest + 1
+    (PROMPT_DIR / f"{name}.v{n}.md").write_text(text)
+    return PromptVersion(name, text, f"local-{n}")
+
+
+def promote_prompt(pv: PromptVersion) -> None:
+    """Make `pv` the champion (Langfuse: move the `production` label; local: champion pointer)."""
+    if pv.version.startswith("lf-"):
+        langfuse_client().update_prompt(
+            name=pv.name, version=version_number(pv), new_labels=["production"]
+        )
+    else:
+        _champion_file(pv.name).write_text(str(version_number(pv)))
+
+
 def get_prompt(name: str, label: str = "production") -> PromptVersion:
-    s = get_settings()
-    if s.offline or not (s.langfuse_public_key and s.langfuse_secret_key):
+    if label == "challenger":
+        if (c := get_challenger(name)) is None:
+            raise LookupError(f"no challenger for {name}")
+        return c
+    if not _use_langfuse():
         return get_local(name)
     try:
         p = langfuse_client().get_prompt(name, label=label, type="text", max_retries=1)

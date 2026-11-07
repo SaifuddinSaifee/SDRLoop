@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from sdr_loop import budget
-from sdr_loop.config import Settings
+from sdr_loop.config import Settings, get_settings
 from sdr_loop.llm import FakeProvider, LLMGateway, set_gateway
 from sdr_loop.memory import Repository
 from sdr_loop.observability import InMemoryTracer, set_tracer
@@ -27,6 +27,23 @@ def tracer() -> Iterator[InMemoryTracer]:
     t = InMemoryTracer()
     set_tracer(t)
     yield t
+
+
+SECRETS = (
+    "ANTHROPIC_API_KEY", "TOGETHER_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
+    "EVABOOT_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "PUBLIC_WEBHOOK_URL",
+)  # fmt: skip
+
+
+@pytest.fixture(autouse=True)
+def _no_real_services(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Env vars beat .env, so a developer's real keys can never leak into unit tests."""
+    for k in SECRETS:
+        monkeypatch.setenv(k, "")
+    monkeypatch.setenv("OFFLINE", "true")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)

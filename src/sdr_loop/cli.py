@@ -174,6 +174,62 @@ def api(host: str = "0.0.0.0", port: int = 8000) -> None:  # noqa: S104
     uvicorn.run(create_app(Repository(s.database_url), s), host=host, port=port)
 
 
+@app.command()
+def learn() -> None:
+    """One learning cycle: edits/rejections -> challenger -> champion vs challenger -> promote?"""
+    from sdr_loop.learn.cycle import run_learning_cycle
+
+    logging.basicConfig(level=logging.INFO)
+    s = get_settings()
+    _require_real_models(s)
+    tracer = init_tracer_from_settings()
+
+    async def go() -> None:
+        repo = await _open_repo(s)
+        try:
+            res = await run_learning_cycle(repo, s)
+        finally:
+            tracer.flush()
+            await repo.close()
+        typer.echo(f"learn: {res.outcome}" + (f" ({res.reason})" if res.reason else ""))
+        if res.detail:
+            d = res.detail
+            typer.echo(
+                f"  champion {d['champion_avg']:.3f} vs challenger {d['challenger_avg']:.3f}; "
+                f"invalid citations {d['challenger_invalid_citations']}; "
+                f"regressions {d['regression_rate']:.0%}"
+            )
+
+    asyncio.run(go())
+
+
+@app.command()
+def purge(
+    lead: Annotated[str, typer.Option("--lead", help="Lead id or LinkedIn profile URL")],
+) -> None:
+    """Delete a lead, its facts, drafts, decisions, eval cases, outbox lines and trace."""
+    from sdr_loop.observability import get_tracer
+    from sdr_loop.privacy import purge_lead
+
+    s = get_settings()
+    init_tracer_from_settings()
+
+    async def go() -> None:
+        repo = await _open_repo(s)
+        try:
+            rep = await purge_lead(repo, get_tracer(), lead, s.outbox_path)
+        finally:
+            await repo.close()
+        if not rep.found:
+            raise _fail(f"No lead matches {lead!r}.")
+        typer.echo(
+            f"purged: {rep.rows}; outbox lines removed: {rep.outbox_lines_removed}; "
+            f"trace deleted: {rep.trace_deleted}"
+        )
+
+    asyncio.run(go())
+
+
 @prompts_app.command("push")
 def prompts_push() -> None:
     """Seed Langfuse with the local prompt files, labelled `production`."""

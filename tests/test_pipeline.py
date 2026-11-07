@@ -202,29 +202,38 @@ async def test_one_failing_lead_does_not_kill_the_run(repo: Repository, settings
 
 
 async def test_concurrency_is_bounded(repo: Repository, settings: Settings) -> None:
-    s, _ = wire(settings, concurrency=3)
+    limit = 3
+    s, _ = wire(settings, concurrency=limit)
     live = {"now": 0, "max": 0}
+    reached = asyncio.Event()
 
-    class Slow:
+    class Gate:
+        """Holds each call until `limit` are in flight at once (no wall-clock race)."""
+
         async def complete(
             self, model: str, system: str, messages: Any, tools: Any, mt: int
         ) -> RawResult:
             live["now"] += 1
             live["max"] = max(live["max"], live["now"])
-            await asyncio.sleep(0.01)
-            live["now"] -= 1
+            if live["now"] >= limit:
+                reached.set()
+            try:
+                await asyncio.wait_for(reached.wait(), timeout=5)
+                await asyncio.sleep(0.05)  # stay in flight so a missing semaphore would overshoot
+            finally:
+                live["now"] -= 1
             out = together_script(model, system, messages, tools)
             return RawResult(text=out) if isinstance(out, str) else out
 
-    llm.set_gateway(
-        LLMGateway(
-            {"together": Slow(), "anthropic": FakeProvider(anthropic_script)}, s, backoff_base=0
-        )
-    )  # type: ignore[dict-item]
-    # non-fit leads: each makes exactly one (slow) qualify call
-    run = await new_run(repo, records(0, 10))
+    gateway = LLMGateway(
+        {"together": Gate(), "anthropic": FakeProvider(anthropic_script)},  # type: ignore[dict-item]
+        s,
+        backoff_base=0,
+    )
+    llm.set_gateway(gateway)
+    run = await new_run(repo, records(0, 10))  # non-fit leads: one (gated) qualify call each
     await pipeline(repo, s).run(run)
-    assert 1 < live["max"] <= 3
+    assert live["max"] == limit  # parallelism really happens, and never exceeds the cap
 
 
 async def test_rerun_of_a_finished_run_does_nothing(repo: Repository, settings: Settings) -> None:

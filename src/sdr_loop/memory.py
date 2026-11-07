@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, event, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -18,6 +18,7 @@ from sdr_loop.db.schema import (
     Base,
     DecisionRow,
     DraftRow,
+    EvalCase,
     FactRow,
     LeadRow,
     QualificationRow,
@@ -30,6 +31,15 @@ from sdr_loop.models import Fact, Lead, Qualification, Sequence
 class Repository:
     def __init__(self, url: str) -> None:
         self.engine: AsyncEngine = create_async_engine(url)
+        if url.startswith("sqlite"):  # local/test mode: WAL avoids an fsync on every commit
+
+            @event.listens_for(self.engine.sync_engine, "connect")
+            def _sqlite_pragmas(dbapi_conn: Any, _record: Any) -> None:
+                cur = dbapi_conn.cursor()
+                cur.execute("PRAGMA journal_mode=WAL")
+                cur.execute("PRAGMA synchronous=NORMAL")
+                cur.close()
+
         self._sessions = async_sessionmaker(self.engine, expire_on_commit=False)
 
     def session(self) -> AsyncSession:
@@ -355,3 +365,46 @@ class Repository:
         async with self.session() as s:
             await s.execute(update(DraftRow).where(DraftRow.id == draft_id).values(status=status))
             await s.commit()
+
+    # --------------------------------------------------------------- privacy
+
+    async def find_lead(self, ident: str | int) -> LeadRow | None:
+        """By numeric id or LinkedIn URL."""
+        from sdr_loop.steps.extract import normalise_linkedin_url
+
+        async with self.session() as s:
+            if isinstance(ident, int) or str(ident).isdigit():
+                return await s.get(LeadRow, int(ident))
+            url = normalise_linkedin_url(str(ident))
+            return (
+                await s.execute(select(LeadRow).where(LeadRow.linkedin_url == url))
+            ).scalar_one_or_none()
+
+    async def purge_lead_rows(self, lead_id: int) -> dict[str, int]:
+        """Delete a lead and everything derived from it, including eval cases built from its
+        decisions. Aggregates (run cost, prompt promotions) hold no personal data and stay."""
+        counts: dict[str, int] = {}
+        async with self.session() as s:
+            draft_ids = list(
+                (await s.execute(select(DraftRow.id).where(DraftRow.lead_id == lead_id))).scalars()
+            )
+            decision_ids = list(
+                (
+                    await s.execute(
+                        select(DecisionRow.id).where(DecisionRow.draft_id.in_(draft_ids))
+                    )
+                ).scalars()
+            ) if draft_ids else []  # fmt: skip
+            steps: list[tuple[str, Any]] = [
+                ("eval_cases", delete(EvalCase).where(EvalCase.decision_id.in_(decision_ids))),
+                ("decisions", delete(DecisionRow).where(DecisionRow.draft_id.in_(draft_ids))),
+                ("drafts", delete(DraftRow).where(DraftRow.lead_id == lead_id)),
+                ("facts", delete(FactRow).where(FactRow.lead_id == lead_id)),
+                ("qualifications", delete(QualificationRow).where(
+                    QualificationRow.lead_id == lead_id)),
+                ("leads", delete(LeadRow).where(LeadRow.id == lead_id)),
+            ]  # fmt: skip
+            for name, stmt in steps:
+                counts[name] = int(getattr(await s.execute(stmt), "rowcount", 0) or 0)
+            await s.commit()
+        return counts

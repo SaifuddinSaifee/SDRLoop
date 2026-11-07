@@ -63,6 +63,8 @@ class Tracer(Protocol):
 
     def flush(self) -> None: ...
 
+    def delete_trace(self, trace_id: str) -> None: ...
+
 
 def lead_trace_seed(lead_id: int) -> str:
     """One trace per lead. The pipeline and the later approve/outbox steps share this seed so
@@ -85,10 +87,10 @@ class RecordedSpan:
     events: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
 
     def update(self, **fields: Any) -> None:
-        self.fields.update(fields)
+        self.fields.update(mask_pii(fields))  # same masking the Langfuse client applies
 
     def event(self, name: str, **data: Any) -> None:
-        self.events.append((name, data))
+        self.events.append((name, mask_pii(data)))
 
 
 @dataclass
@@ -144,7 +146,7 @@ class InMemoryTracer:
         model: str | None = None,
     ) -> Iterator[RecordedSpan]:
         parent = self._span.get()
-        s = RecordedSpan(name, kind, parent, input, metadata or {}, model)
+        s = RecordedSpan(name, kind, parent, mask_pii(input), mask_pii(metadata or {}), model)
         if (t := self._trace.get()) is not None:
             t.spans.append(s)
         tok = self._span.set(s)
@@ -158,6 +160,9 @@ class InMemoryTracer:
 
     def flush(self) -> None:
         pass
+
+    def delete_trace(self, trace_id: str) -> None:
+        self.traces = [t for t in self.traces if t.trace_id != trace_id]
 
 
 # ---------------------------------------------------------------- no-op
@@ -184,6 +189,9 @@ class NullTracer:
         return nullcontext(_NullHandle())
 
     def flush(self) -> None:
+        pass
+
+    def delete_trace(self, trace_id: str) -> None:
         pass
 
 

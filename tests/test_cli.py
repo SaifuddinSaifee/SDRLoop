@@ -20,8 +20,6 @@ def cli_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     db = tmp_path / "cli.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite+aiosqlite:///{db}")
     monkeypatch.setenv("OUTBOX_PATH", str(tmp_path / "outbox.jsonl"))
-    for k in ("ANTHROPIC_API_KEY", "TOGETHER_API_KEY", "LANGFUSE_PUBLIC_KEY", "TELEGRAM_CHAT_ID"):
-        monkeypatch.delenv(k, raising=False)
     get_settings.cache_clear()
     yield db  # type: ignore[misc]
     get_settings.cache_clear()

@@ -31,6 +31,8 @@ class Settings(BaseSettings):
 
     dry_run: bool = True
     learn_enabled: bool = True
+    pinned_prompts: str = ""  # comma-separated prompt names the loop must not touch
+    learn_min_new_cases: int = 10
     offline: bool = False
     concurrency: int = 5
     per_lead_usd_cap: float = 0.05
