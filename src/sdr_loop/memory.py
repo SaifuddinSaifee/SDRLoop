@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select, update
+from typing import Any
+
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -13,12 +15,14 @@ from sqlalchemy.ext.asyncio import (
 
 from sdr_loop.db.schema import (
     Base,
+    DraftRow,
+    FactRow,
     LeadRow,
     QualificationRow,
     Run,
     WebhookEvent,
 )
-from sdr_loop.models import Lead, Qualification
+from sdr_loop.models import Fact, Lead, Qualification, Sequence
 
 
 class Repository:
@@ -173,3 +177,72 @@ class Repository:
                 disqualifier=row.disqualifier,
                 decided_by=row.decided_by,
             )
+
+    # ----------------------------------------------------------------- facts
+
+    async def save_facts(self, lead_id: int, facts: list[Fact]) -> None:
+        """Replace the lead's facts (idempotent re-research)."""
+        async with self.session() as s:
+            await s.execute(delete(FactRow).where(FactRow.lead_id == lead_id))
+            for f in facts:
+                s.add(
+                    FactRow(
+                        id=f.id,
+                        lead_id=lead_id,
+                        source_url=f.source_url,
+                        snippet=f.snippet,
+                        kind=f.kind,
+                    )
+                )
+            await s.commit()
+
+    async def get_facts(self, lead_id: int) -> list[Fact]:
+        async with self.session() as s:
+            rows = (
+                await s.execute(
+                    select(FactRow).where(FactRow.lead_id == lead_id).order_by(FactRow.pk)
+                )
+            ).scalars()
+            return [
+                Fact(id=r.id, source_url=r.source_url, snippet=r.snippet, kind=r.kind) for r in rows
+            ]
+
+    # ---------------------------------------------------------------- drafts
+
+    async def save_draft(
+        self,
+        lead_id: int,
+        seq: Sequence,
+        *,
+        prompt_version: str,
+        flagged: bool = False,
+        flag_reason: str | None = None,
+        critic: dict[str, Any] | None = None,
+        status: str = "pending_approval",
+    ) -> int:
+        cited = sorted(
+            {fid for e in (seq.email_1, seq.email_2) for c in e.claims for fid in c.fact_ids}
+        )
+        async with self.session() as s:
+            row = (
+                await s.execute(select(DraftRow).where(DraftRow.lead_id == lead_id))
+            ).scalar_one_or_none()
+            if row is None:
+                row = DraftRow(lead_id=lead_id, email_1={}, email_2={})
+                s.add(row)
+            row.email_1 = seq.email_1.model_dump()
+            row.email_2 = seq.email_2.model_dump()
+            row.cited_fact_ids = cited
+            row.prompt_version = prompt_version
+            row.critic_scores = critic
+            row.status = status
+            row.flagged = flagged
+            row.flag_reason = flag_reason
+            await s.commit()
+            return row.id
+
+    async def get_draft(self, lead_id: int) -> DraftRow | None:
+        async with self.session() as s:
+            return (
+                await s.execute(select(DraftRow).where(DraftRow.lead_id == lead_id))
+            ).scalar_one_or_none()

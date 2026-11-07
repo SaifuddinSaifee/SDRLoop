@@ -21,6 +21,7 @@ dependencies = [
   "pyyaml>=6.0",
   "rapidfuzz>=3.9",
   "selectolax>=0.3.21",
+  "defusedxml>=0.7.1",
 ]
 
 [dependency-groups]
@@ -57,7 +58,7 @@ files = ["src"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["langfuse.*", "selectolax.*", "rapidfuzz.*", "telegram.*"]
+module = ["langfuse.*", "selectolax.*", "rapidfuzz.*", "telegram.*", "defusedxml.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
