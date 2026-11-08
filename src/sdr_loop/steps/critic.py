@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass, field
 
 from sdr_loop import llm
+from sdr_loop.campaign import current_brief
 from sdr_loop.models import (
     CodeCheckResult,
     CriticReport,
@@ -94,6 +95,7 @@ async def llm_critic(
 ) -> CriticScores:
     prompt = prompt or get_prompt("critic")
     payload = {
+        "ABOUT_US": current_brief(),
         "lead": {"name": lead.full_name, "title": lead.title, "company": lead.company},
         "facts": [{"id": f.id, "snippet": f.snippet} for f in facts],
         "draft": seq.model_dump(),

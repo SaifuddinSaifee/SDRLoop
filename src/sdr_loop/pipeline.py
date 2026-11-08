@@ -21,6 +21,7 @@ from typing import Any
 import httpx
 
 from sdr_loop import budget
+from sdr_loop.campaign import load_campaign
 from sdr_loop.config import Settings
 from sdr_loop.memory import Repository
 from sdr_loop.models import ICP, Lead
@@ -141,7 +142,11 @@ class Pipeline:
             "lead",
             seed=lead_trace_seed(lead_id),
             tags=[f"run:{run_id}", f"icp:{self.icp_version}"],
-            metadata={"run_id": run_id, "icp_version": self.icp_version},
+            metadata={
+                "run_id": run_id,
+                "icp_version": self.icp_version,
+                "campaign_version": load_campaign()[1],
+            },
         ) as tr:
             await self.repo.set_lead_trace(lead_id, tr.trace_id)
             try:

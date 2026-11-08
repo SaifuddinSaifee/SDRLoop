@@ -23,6 +23,7 @@ from sdr_loop.db.schema import (
     LeadRow,
     QualificationRow,
     Run,
+    SendRow,
     WebhookEvent,
 )
 from sdr_loop.models import Fact, Lead, Qualification, Sequence
@@ -396,6 +397,7 @@ class Repository:
                 ).scalars()
             ) if draft_ids else []  # fmt: skip
             steps: list[tuple[str, Any]] = [
+                ("sends", delete(SendRow).where(SendRow.lead_id == lead_id)),
                 ("eval_cases", delete(EvalCase).where(EvalCase.decision_id.in_(decision_ids))),
                 ("decisions", delete(DecisionRow).where(DecisionRow.draft_id.in_(draft_ids))),
                 ("drafts", delete(DraftRow).where(DraftRow.lead_id == lead_id)),
@@ -406,5 +408,96 @@ class Repository:
             ]  # fmt: skip
             for name, stmt in steps:
                 counts[name] = int(getattr(await s.execute(stmt), "rowcount", 0) or 0)
+            await s.commit()
+        return counts
+
+    # ------------------------------------------------------------- sending (demo inbox)
+
+    async def schedule_send(
+        self, draft_id: int, lead_id: int, step: int, to_email: str, subject: str, body: str,
+        due_at: datetime,
+    ) -> bool:  # fmt: skip
+        """False if this email was already scheduled (unique draft+step)."""
+        async with self.session() as s:
+            row = SendRow(
+                draft_id=draft_id, lead_id=lead_id, step=step, to_email=to_email,
+                subject=subject, body=body, due_at=due_at, status="scheduled",
+            )  # fmt: skip
+            s.add(row)
+            try:
+                await s.commit()
+            except IntegrityError:
+                await s.rollback()
+                return False
+        return True
+
+    async def due_sends(self, now: datetime) -> list[SendRow]:
+        async with self.session() as s:
+            q = (
+                select(SendRow)
+                .where(SendRow.status == "scheduled", SendRow.due_at <= now)
+                .order_by(SendRow.due_at, SendRow.step)
+            )
+            return list((await s.execute(q)).scalars())
+
+    async def claim_send(self, send_id: int) -> bool:
+        """Atomically move scheduled -> sending, so two dispatchers never send the same row."""
+        async with self.session() as s:
+            res = await s.execute(
+                update(SendRow)
+                .where(SendRow.id == send_id, SendRow.status == "scheduled")
+                .values(status="sending")
+            )
+            await s.commit()
+            return bool(getattr(res, "rowcount", 0))
+
+    async def finish_send(
+        self,
+        send_id: int,
+        *,
+        message_id: str | None = None,
+        error: str | None = None,
+        retry_at: datetime | None = None,
+    ) -> None:
+        """Sent, failed for good, or (with `retry_at`) back in the queue, e.g. inbox not up yet."""
+        values: dict[str, Any]
+        if error and retry_at:
+            values = {"status": "scheduled", "error": error[:500], "due_at": retry_at}
+        elif error:
+            values = {"status": "failed", "error": error[:500]}
+        else:
+            values = {"status": "sent", "sent_at": datetime.now(UTC), "message_id": message_id,
+                      "error": None}  # fmt: skip
+        async with self.session() as s:
+            await s.execute(update(SendRow).where(SendRow.id == send_id).values(**values))
+            await s.commit()
+
+    async def get_send(self, draft_id: int, step: int) -> SendRow | None:
+        async with self.session() as s:
+            q = select(SendRow).where(SendRow.draft_id == draft_id, SendRow.step == step)
+            return (await s.execute(q)).scalars().first()
+
+    async def list_sends(self) -> list[SendRow]:
+        async with self.session() as s:
+            return list((await s.execute(select(SendRow).order_by(SendRow.id.desc()))).scalars())
+
+    async def reset_all(self, *, keep_learning: bool = False) -> dict[str, int]:
+        """Delete every lead, run and derived row (fresh start). `keep_learning` keeps eval cases
+        and promotion history."""
+        from sdr_loop.db.schema import PromptPromotion
+
+        tables: list[Any] = [SendRow]
+        if not keep_learning:
+            tables += [EvalCase, PromptPromotion]
+        else:  # eval cases point at decisions: detach them before decisions go
+            async with self.session() as s:
+                await s.execute(update(EvalCase).values(decision_id=None))
+                await s.commit()
+        tables += [DecisionRow, DraftRow, FactRow, QualificationRow, LeadRow, WebhookEvent, Run]
+        counts: dict[str, int] = {}
+        async with self.session() as s:
+            for t in tables:
+                res = await s.execute(delete(t))
+                counts[t.__tablename__] = int(getattr(res, "rowcount", 0) or 0)
             await s.commit()
         return counts

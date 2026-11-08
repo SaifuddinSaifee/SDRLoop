@@ -41,11 +41,21 @@ SECRETS = (
 
 
 @pytest.fixture(autouse=True)
+def _restore_environ() -> Iterator[None]:
+    """The Setup page applies saved settings to os.environ; never let that leak between tests."""
+    saved = dict(os.environ)
+    yield
+    os.environ.clear()
+    os.environ.update(saved)
+
+
+@pytest.fixture(autouse=True)
 def _no_real_services(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Env vars beat .env, so a developer's real keys can never leak into unit tests."""
     for k in SECRETS:
         monkeypatch.setenv(k, "")
     monkeypatch.setenv("OFFLINE", "true")
+    monkeypatch.setenv("EMAIL_MODE", "off")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

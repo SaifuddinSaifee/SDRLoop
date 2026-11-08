@@ -144,6 +144,31 @@ def missing_prompts(lf: Any | None = None) -> list[str]:
     return missing
 
 
+def stale_seed_prompts(lf: Any | None = None) -> list[str]:
+    """Prompts whose Langfuse `production` text is an OLDER local seed file, i.e. we shipped a newer
+    one. A version the learning loop promoted is never a local file, so it is never reported."""
+    lf = lf or langfuse_client()
+    stale = []
+    for name in PIPELINE_PROMPTS:
+        try:
+            live = lf.get_prompt(
+                name, label="production", type="text", max_retries=0, cache_ttl_seconds=0
+            ).prompt
+        except Exception:
+            continue
+        texts = [p.read_text() for _, p in _local_versions(name)]
+        if live != texts[-1] and live in texts[:-1]:
+            stale.append(name)
+    return stale
+
+
+def prompts_to_upload(lf: Any | None = None) -> list[str]:
+    """Missing in Langfuse, or still on an older built-in version."""
+    lf = lf or langfuse_client()
+    missing = missing_prompts(lf)
+    return missing + [n for n in stale_seed_prompts(lf) if n not in missing]
+
+
 def push_local_prompts(names: tuple[str, ...] | list[str] = PIPELINE_PROMPTS) -> list[str]:
     """Seed Langfuse with the latest local file of each prompt, labelled `production`."""
     lf = langfuse_client()

@@ -11,23 +11,26 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
 import streamlit as st
 
-from sdr_loop import health, kpis
+from sdr_loop import health, kpis, mailer
 from sdr_loop.bot.controller import BotController
 from sdr_loop.bot.setup import TelegramSetupError, send_test
+from sdr_loop.campaign import load_campaign
 from sdr_loop.config import get_settings
 from sdr_loop.jobs import DEFAULT_LIMIT, Job, JobBusy, JobStore, run_args
 from sdr_loop.memory import Repository
 from sdr_loop.models import Email, Sequence
 from sdr_loop.observability import init_tracer_from_settings
 from sdr_loop.steps import approve as ap
+from sdr_loop.steps.send import dispatch_due
+from sdr_loop.ui.setup_wizard import setup_page
 
-PAGES = ["Home", "Review queue", "Learning", "KPIs"]
+PAGES = ["Setup", "Home", "Review queue", "Sent emails", "Learning", "KPIs"]
 ICON = {"ok": "✅", "warn": "⚠️", "fail": "❌"}
 
 
@@ -113,12 +116,18 @@ async def _stats(repo: Repository) -> dict[str, Any]:
 def run_form(checks: dict[str, health.Check]) -> None:
     st.subheader("Start a run")
     busy = store().current()
+    searches = load_campaign()[0].search_urls
+    live_ready = checks["evaboot"].status == "ok"
     with st.form("run"):
         source = st.radio(
             "Leads from",
             ["Recorded export (no Evaboot call)", "Live Sales Navigator search (Evaboot)"],
+            index=1 if live_ready else 0,
         )
-        url = st.text_input("Sales Navigator search URL (live search only)")
+        if searches:
+            url = st.selectbox("Sales Navigator search (saved in Setup → Leads)", searches)
+        else:
+            url = st.text_input("Sales Navigator search URL (live search only)")
         limit = st.number_input("How many leads", min_value=1, max_value=300, value=DEFAULT_LIMIT)
         demo = st.checkbox(
             "Demo mode: canned AI output, no API cost",
@@ -130,10 +139,11 @@ def run_form(checks: dict[str, health.Check]) -> None:
     if not submitted:
         return
     live = source.startswith("Live")
+    url = url or ""
     if live and "linkedin.com/sales" not in url:
         st.error("Paste a Sales Navigator search URL (linkedin.com/sales/...) for a live run.")
-    elif live and checks["evaboot"].status != "ok":
-        st.error("A live run needs EVABOOT_API_KEY in .env. Use the recorded export for now.")
+    elif live and not get_settings().evaboot_api_key:
+        st.error("A live run needs your Evaboot API key: Setup → Leads.")
     elif not demo and checks["together"].status == "fail":
         st.error("Real runs need a working TOGETHER_API_KEY. Tick Demo mode to try it without AI.")
     else:
@@ -179,15 +189,17 @@ def setup_panel(checks: list[health.Check]) -> None:
         st.markdown(f"{ICON[c.status]} **{c.name}**  \n{c.detail}")
         if c.fix and c.status != "ok":
             st.caption(f"Fix: {c.fix}")
+    if any(c.status == "fail" for c in checks):
+        st.warning("Open the **Setup** page (sidebar) to finish setup step by step.")
     b1, b2, b3 = st.columns(3)
     if b1.button("Re-check"):
         setup_checks.clear()
         st.rerun()
     by_key = {c.key: c for c in checks}
-    if "prompts missing" in by_key["langfuse"].detail and b2.button("Upload prompts"):
-        from sdr_loop.prompts import missing_prompts, push_local_prompts
+    if by_key["langfuse"].action == "upload_prompts" and b2.button("Upload prompts"):
+        from sdr_loop.prompts import prompts_to_upload, push_local_prompts
 
-        st.toast("Uploaded: " + ", ".join(push_local_prompts(missing_prompts())))
+        st.toast("Uploaded: " + ", ".join(push_local_prompts(prompts_to_upload())))
         setup_checks.clear()
         st.rerun()
     if by_key["telegram"].status == "ok" and b3.button("Test Telegram"):
@@ -274,6 +286,41 @@ def review_page() -> None:
             st.error("Code checks: " + "; ".join(code["failures"]))
 
 
+# ---------------------------------------------------------------------- Sent emails
+
+
+def sent_page() -> None:
+    st.header("Sent emails")
+    s = get_settings()
+    if s.email_mode != "mailpit":
+        st.info("Email delivery is off: approved emails only go to the outbox file. "
+                "Turn it on in Setup → Email delivery.")  # fmt: skip
+    else:
+        st.caption(
+            f"Approved emails go to the demo inbox (Mailpit), never to the real address. "
+            f"Email 2 follows {s.followup_delay_minutes:g} min after email 1."
+        )
+        a, b, c = st.columns(3)
+        a.link_button("Open the inbox ↗", mailer.inbox_url(s))
+        if b.button("Send due emails now"):
+            st.toast(f"Sent {len(run(lambda r: dispatch_due(r, s)))} email(s).")
+        if c.button("Send follow-ups now (skip the wait)"):
+            later = datetime.now(UTC) + timedelta(days=3650)
+            st.toast(f"Sent {len(run(lambda r: dispatch_due(r, s, now=later)))} email(s).")
+    rows = run(lambda r: r.list_sends())
+    if not rows:
+        st.info("Nothing sent yet. Approve a draft in the Review queue.")
+        return
+    st.dataframe(
+        [
+            {"draft": r.draft_id, "email": r.step, "to": r.to_email, "subject": r.subject,
+             "status": r.status, "due": r.due_at, "sent": r.sent_at, "error": r.error}
+            for r in rows
+        ],
+        use_container_width=True,
+    )  # fmt: skip
+
+
 # ---------------------------------------------------------------------- Learning
 
 
@@ -313,9 +360,14 @@ def main() -> None:
     st.set_page_config(page_title="SDR loop", layout="wide")
     get_settings.cache_clear()  # pick up .env edits without restarting
     _init()
-    page = st.sidebar.radio("Page", PAGES)
-    {"Home": home_page, "Review queue": review_page, "Learning": learning_page,
-     "KPIs": kpi_page}[page]()  # fmt: skip
+    checks = setup_checks()
+    needs_setup = any(c.status == "fail" for c in checks)
+    page = st.sidebar.radio("Page", PAGES, index=0 if needs_setup else 1)
+    if page == "Setup":
+        setup_page(checks, setup_checks.clear)
+        return
+    {"Home": home_page, "Review queue": review_page, "Sent emails": sent_page,
+     "Learning": learning_page, "KPIs": kpi_page}[page]()  # fmt: skip
 
 
 main()

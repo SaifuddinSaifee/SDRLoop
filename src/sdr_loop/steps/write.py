@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 from sdr_loop import llm
+from sdr_loop.campaign import current_brief
 from sdr_loop.models import Fact, Lead, Sequence
 from sdr_loop.prompts import PromptVersion, get_prompt
 
@@ -20,8 +21,14 @@ def flags_for(lead: Lead, facts: list[Fact]) -> list[str]:
     return flags
 
 
-def writer_input(lead: Lead, facts: list[Fact], revision_notes: str | None = None) -> str:
+def writer_input(
+    lead: Lead,
+    facts: list[Fact],
+    revision_notes: str | None = None,
+    about_us: dict[str, object] | None = None,
+) -> str:
     payload: dict[str, object] = {
+        "ABOUT_US": about_us if about_us is not None else current_brief(),
         "lead": {
             "name": lead.full_name,
             "title": lead.title,

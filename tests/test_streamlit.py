@@ -37,9 +37,8 @@ def at(page: str = "Review queue") -> AppTest:
     t = AppTest.from_file(APP, default_timeout=30)
     t.run()
     assert not t.exception, t.exception
-    if page != "Home":
-        t.sidebar.radio[0].set_value(page).run()
-        assert not t.exception, t.exception
+    t.sidebar.radio[0].set_value(page).run()
+    assert not t.exception, t.exception
     return t
 
 
@@ -113,7 +112,7 @@ def test_live_run_without_evaboot_key_is_refused(seeded: Path, tmp_path: Path) -
     )
     t.text_input[0].set_value("https://www.linkedin.com/sales/search/people?x=1")
     next(b for b in t.button if "Start run" in b.label).click().run()
-    assert any("EVABOOT_API_KEY" in e.value for e in t.error)
+    assert any("Evaboot API key" in e.value for e in t.error)
     assert JobStore(tmp_path / "state").all() == []
 
 
@@ -121,3 +120,98 @@ def test_learning_page_renders(seeded: Path) -> None:
     t = at("Learning")
     assert [h.value for h in t.header] == ["Learning"]
     assert any("learning cycle" in b.label for b in t.button)
+
+
+# ---------------------------------------------------------------------- Setup wizard
+
+
+@pytest.fixture
+def wizard(seeded: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Setup page writing to throwaway copies of .env, campaign.yaml and icp.yaml."""
+    import shutil
+
+    from sdr_loop import envfile
+    from sdr_loop.ui import setup_wizard
+
+    env = tmp_path / ".env"
+    env.write_text("# test\n")
+    monkeypatch.setattr(envfile, "ENV_PATH", env)
+    shutil.copy("campaign.yaml", tmp_path / "campaign.yaml")
+    shutil.copy("icp.yaml", tmp_path / "icp.yaml")
+    monkeypatch.setenv("CAMPAIGN_PATH", str(tmp_path / "campaign.yaml"))
+    monkeypatch.setattr(setup_wizard, "ICP_PATH", tmp_path / "icp.yaml")
+    get_settings.cache_clear()
+    return tmp_path
+
+
+def test_setup_is_the_landing_page_until_required_steps_pass(wizard: Path) -> None:
+    t = AppTest.from_file(APP, default_timeout=30)
+    t.run()
+    assert not t.exception, t.exception
+    assert [h.value for h in t.header] == ["Setup"]  # no TOGETHER_API_KEY yet
+    labels = [e.label for e in t.expander]
+    assert any("1. Company & offer" in x for x in labels)
+    assert any("Fresh start" in x for x in labels)
+
+
+def form_button(t: AppTest, label: str):  # type: ignore[no-untyped-def]
+    return next(b for b in t.button if b.label == label)
+
+
+def test_saving_company_and_offer_writes_campaign_yaml(wizard: Path) -> None:
+    import yaml
+
+    t = at("Setup")
+    next(x for x in t.text_input if x.label == "Company").set_value("Gather")
+    next(x for x in t.text_input if x.label == "Sender name").set_value("Saif S")
+    form_button(t, "Save company & offer").click().run()
+    assert not t.exception, t.exception
+    data = yaml.safe_load((wizard / "campaign.yaml").read_text())
+    assert data["company"] == "Gather" and data["sender"]["name"] == "Saif S"
+    assert data["allowed_claims"]  # untouched fields kept
+
+
+def test_keys_are_saved_but_never_shown(wizard: Path) -> None:
+    t = at("Setup")
+    next(x for x in t.text_input if x.label == "Together AI API key").set_value("tok-SECRET-123")
+    form_button(t, "Save and test").click().run()
+    assert "TOGETHER_API_KEY=tok-SECRET-123" in (wizard / ".env").read_text()
+    t = at("Setup")
+    shown = " ".join(str(x.value) for x in t.text_input) + " ".join(m.value for m in t.markdown)
+    assert "tok-SECRET-123" not in shown
+
+
+def test_sales_navigator_urls_are_validated_and_saved(wizard: Path) -> None:
+    import yaml
+
+    t = at("Setup")
+    box = next(x for x in t.text_area if x.label.startswith("Sales Navigator search URLs"))
+    box.set_value("https://evil.example/x")
+    next(b for b in t.button if b.label == "Save" and b.key and "leads" in b.key).click().run()
+    assert any("Not a Sales Navigator URL" in e.value for e in t.error)
+    url = "https://www.linkedin.com/sales/search/people?query=(x)"
+    t = at("Setup")
+    next(x for x in t.text_area if x.label.startswith("Sales Navigator search URLs")).set_value(url)
+    next(b for b in t.button if b.label == "Save" and b.key and "leads" in b.key).click().run()
+    assert yaml.safe_load((wizard / "campaign.yaml").read_text())["search_urls"] == [url]
+
+
+def test_email_delivery_toggle_saves_mode(wizard: Path) -> None:
+    t = at("Setup")
+    t.toggle[0].set_value(True)
+    next(b for b in t.button if b.label == "Save" and b.key and "email" in b.key).click().run()
+    env = (wizard / ".env").read_text()
+    assert "EMAIL_MODE=mailpit" in env and "FOLLOWUP_DELAY_MINUTES=3" in env
+
+
+def test_fresh_start_needs_confirmation_then_clears(wizard: Path, seeded: Path) -> None:
+    t = at("Setup")
+    clear = next(b for b in t.button if b.label == "Clear")
+    assert clear.disabled
+    next(x for x in t.text_input if x.label == "Type RESET to confirm").set_value("RESET").run()
+    next(b for b in t.button if b.label == "Clear").click().run()
+    assert not t.exception, t.exception
+    assert any("Deleted" in s.value for s in t.success)
+    c = sqlite3.connect(seeded)
+    assert c.execute("select count(*) from leads").fetchone()[0] == 0
+    assert c.execute("select count(*) from drafts").fetchone()[0] == 0

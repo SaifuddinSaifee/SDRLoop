@@ -84,42 +84,62 @@ Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
-cp .env.example .env      # add the keys you have; everything else is optional
-uv run sdr-loop start
+uv run sdr-loop start     # opens the control panel; its Setup page walks you through the rest
 ```
 
 `sdr-loop start` is the only command you need day to day. It:
 
-1. **Checks your setup and fixes what it can.** It creates the local database, saves your Telegram
-   chat id as soon as you message the bot, and uploads any missing prompts to Langfuse. Anything it
-   can't fix is listed with the exact fix.
+1. **Checks your setup and fixes what it can.** It creates the local database, starts the demo
+   inbox (Mailpit, via Docker) when email delivery is on, saves your Telegram chat id as soon as
+   you message the bot, and uploads missing or outdated built-in prompts to Langfuse.
 2. **Opens the control panel** at http://localhost:8501:
-   - **Home:** start a run, watch its progress live, and see setup status.
+   - **Setup:** a step-by-step wizard. (1) Company & offer: who the emails are from and the only
+     claims the writer may make about you. (2) Who to target. (3) AI models. (4) Real leads:
+     Evaboot key and your Sales Navigator searches. (5) Email delivery to the demo inbox.
+     (6) Telegram. (7) Langfuse. Plus **Fresh start**, which clears leads, drafts and history.
+     It opens automatically until the required steps pass.
+   - **Home:** start a run (live Sales Navigator search or the recorded export), watch its
+     progress live, and see setup status.
    - **Review queue:** each draft next to its cited sources, with Approve / Edit / Reject.
+   - **Sent emails:** what went to the demo inbox, plus "send the follow-ups now".
    - **Learning:** run a learning cycle and see the promotion history.
    - **KPIs.**
 3. **Runs the Telegram bot.** Drafts arrive on your phone within seconds of being written, and you
    get a message when each run finishes. From the phone you can also send `/run 20`,
    `/run <Sales Navigator URL> 20`, `/status` and `/learn`.
-4. **Runs the learning cycle every night** at `LEARN_AT` (default 02:00 local time).
+4. **Sends approved emails to the demo inbox.** Email 1 goes on approval, and email 2 follows
+   after `FOLLOWUP_DELAY_MINUTES` (default 3, demo pace), threaded as a reply.
+5. **Runs the learning cycle every night** at `LEARN_AT` (default 02:00 local time).
 
 Ctrl-C stops it. A run that is already going finishes on its own, and a crashed run can be resumed.
 
-What each key unlocks (the Home page shows which ones are working):
+**Demo delivery.** Approved emails are really sent over SMTP, but only to
+[Mailpit](https://mailpit.axllent.org), a local inbox at http://localhost:8025 that catches
+everything and delivers nothing. Leads, addresses and research can all be real, and nobody receives
+an email. The guard is in code: `EMAIL_MODE` must be `mailpit`, and any SMTP host other than
+localhost or `mailpit` is refused. v1 has no code path to a real mail server.
+
+**The campaign brief** ([`campaign.yaml`](campaign.yaml), edited in Setup → Company & offer)
+tells the writer who it writes for. The prompts carry no company name. The default brief is
+Evaboot, with claims taken from evaboot.com. Statements about us are held to the same rule as
+statements about the prospect: the critic flags anything `allowed_claims` doesn't support.
+
+What each key unlocks (the Home and Setup pages show which ones are working):
 
 | `.env` | Without it | With it |
 |---|---|---|
 | `TOGETHER_API_KEY` | demo runs only (canned AI output, tick "Demo mode") | real qualify / research / write / critic |
 | `TELEGRAM_BOT_TOKEN` | review in the control panel | review on your phone too |
 | `LANGFUSE_*` | no traces | one trace per lead, scores, prompt versions |
-| `EVABOOT_API_KEY` | runs on the recorded export only | runs on a live Sales Navigator search |
+| `EVABOOT_API_KEY` | runs on the recorded export only | real leads from your Sales Navigator searches (1 credit per lead) |
+| `EMAIL_MODE=mailpit` | approved emails go to `outbox.jsonl` only | also sent to the local demo inbox |
 
 Telegram setup: in Telegram, message [@BotFather](https://t.me/BotFather), send `/newbot`, pick a
-name and a username ending in `bot`, and put the token in `.env` as `TELEGRAM_BOT_TOKEN`. Then run
-`sdr-loop start` and press **Start** in your bot when it asks. The chat id is saved for you. The
-bot only ever answers that one chat. If a token leaks, send `/revoke` to @BotFather.
+name and a username ending in `bot`, and paste the token in Setup → Telegram. Then press **Start**
+in your bot. The chat id is found and saved for you, and the bot comes up without a restart. It
+only ever answers that one chat. If a token leaks, send `/revoke` to @BotFather.
 
-Docker (Postgres + migrations + control panel + bot + webhook API):
+Docker (Postgres + migrations + control panel + bot + webhook API + Mailpit):
 
 ```bash
 docker compose up -d --build     # control panel on http://localhost:8501

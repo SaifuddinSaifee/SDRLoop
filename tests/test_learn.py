@@ -181,10 +181,10 @@ async def test_t18_challenger_beats_champion_is_promoted_and_recorded(
         row = (await s.execute(select(PromptPromotion))).scalars().one()
         used = [c.used_in_promotion for c in (await s.execute(select(EvalCase))).scalars()]
     assert row.promoted and row.challenger_score > row.champion_score
-    assert (row.from_version, row.to_version) == ("1", "2") and row.prompt_name == "writer"
+    assert (row.from_version, row.to_version) == ("2", "3") and row.prompt_name == "writer"
     assert row.detail["rationale"] == "shorter" and row.detail["challenger_invalid_citations"] == 0
     assert all(used)
-    assert prompts.get_prompt("writer").version == "local-2"  # the label moved: new champion
+    assert prompts.get_prompt("writer").version == "local-3"  # the label moved: new champion
     assert MARK in prompts.get_prompt("writer").text
 
 
@@ -200,7 +200,7 @@ async def test_t19_e15_better_average_but_one_invalid_fact_id_is_not_promoted(
     async with repo.session() as s:
         row = (await s.execute(select(PromptPromotion))).scalars().one()
     assert row.promoted is False and row.detail["challenger_invalid_citations"] == 1
-    assert prompts.get_prompt("writer").version == "local-1"  # champion untouched
+    assert prompts.get_prompt("writer").version == "local-2"  # champion untouched
     assert prompts.get_challenger("writer") is not None  # archived candidate is still inspectable
 
 
@@ -234,7 +234,7 @@ async def test_challenger_that_drops_grounding_rules_is_rejected_before_scoring(
     world.proposal = {"prompt": "Write nice emails.", "rationale": "simpler"}
     res = await run_learning_cycle(repo, settings_with(settings), golden())
     assert res.outcome == "rejected_challenger" and "grounding" in res.reason
-    assert prompts.get_prompt("writer").version == "local-1"
+    assert prompts.get_prompt("writer").version == "local-2"
     assert world.writer_calls == 1  # only the proposal call; no scoring spend
 
 

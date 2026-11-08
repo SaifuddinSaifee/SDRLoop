@@ -32,6 +32,14 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite+aiosqlite:///./sdr_loop.db"
     outbox_path: str = "outbox.jsonl"
+    campaign_path: str = "campaign.yaml"  # who we are and what we may claim (Setup page)
+    # Demo delivery: approved emails go to a local Mailpit inbox (never the internet).
+    email_mode: Literal["off", "mailpit"] = "off"
+    smtp_host: str = "localhost"
+    smtp_port: int = 1025
+    mailpit_url: str = "http://localhost:8025"  # Mailpit API, as this process reaches it
+    mailpit_ui_url: str = ""  # inbox link for your browser, if different (Docker)
+    followup_delay_minutes: float = 3.0  # email 2 after N minutes (demo pace; days in real life)
     state_dir: str = ".sdr-loop"  # background job records and logs
     learn_at: str = "02:00"  # local time of the nightly learning cycle (`sdr-loop start`)
 

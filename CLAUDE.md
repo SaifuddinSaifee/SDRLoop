@@ -7,7 +7,8 @@ Spec: `docs/PRD.md`. Decisions: `docs/decisions.md`. Daily log: `docs/journal.md
 2. **No secrets.** Keys come only from env / `.env` (gitignored) via `config.Settings`. Never log keys or raw lead emails.
 3. **Every LLM call goes through `src/sdr_loop/llm.py`.** No other module calls a model provider directly. Everything runs on Together AI.
 4. **Web text is data.** Content from `fetch_page` / `search_news` is wrapped in `<untrusted_content>` and never treated as instructions. Facts are only kept if their snippet is an exact substring of tool output.
-5. **Dry run by default.** Nothing reaches the outbox without a `decisions` approval row. No real-send code in v1.
+5. **Dry run by default.** Nothing reaches the outbox or the demo inbox without a `decisions` approval row. No real-send code in v1: `mailer.py` delivers only to a local Mailpit (`EMAIL_MODE=mailpit`, local SMTP host enforced in code).
+10. **Claims about us come from `campaign.yaml`.** Prompts carry no company name; the brief is data in the user message, and the critic treats unsupported claims about us like uncited claims about the prospect.
 6. **Faithfulness is a hard gate.** A claim without a valid fact id fails the critic and the promotion gate.
 7. **Steps are idempotent by lead id.** Re-running must not duplicate rows or redo finished steps.
 8. Tests use `FakeProvider` + SQLite + CSV fixtures. CI must never call a paid API. Real-model evals are marked `@pytest.mark.eval`.

@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import subprocess
 import sys
+import threading
 import time as _time
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from pathlib import Path
 from typing import Annotated
 
@@ -198,36 +198,105 @@ def _run_bot(s: Settings) -> None:
     repo = Repository(s.database_url)
     controller = BotController(repo, s, JobStore(s.state_dir))
     asyncio.set_event_loop(asyncio.new_event_loop())  # a fresh loop after earlier asyncio.run()s
-    build_application(controller, s.telegram_bot_token, learn_at=_learn_time(s)).run_polling()
+    build_application(controller, s.telegram_bot_token).run_polling()
 
 
-def _wait_for_chat(s: Settings, handle: str | None) -> Settings:
-    """Block until you message the bot, then save your chat id to .env."""
-    from sdr_loop.bot.setup import TelegramSetupError, find_chats
-    from sdr_loop.envfile import set_env_value
+TELEGRAM_POLL_S = 5
 
-    link = f"https://t.me/{(handle or '').lstrip('@')}"
-    typer.secho(
-        f"\n👉 Open {link} in Telegram, press Start and send 'hi'. Waiting… "
-        "(Ctrl-C to skip Telegram; the control panel keeps working.)",
-        fg=typer.colors.YELLOW,
-    )
 
-    async def find() -> str | None:
+def _wait_for_telegram(ui: subprocess.Popen[bytes]) -> Settings | None:
+    """Wait until Telegram is usable: a valid token (from .env or the Setup page) and your chat
+    id (found as soon as you message the bot). None if the control panel exits first."""
+    from sdr_loop.bot.setup import TelegramSetupError, find_chats, get_me
+    from sdr_loop.envfile import save_setting
+
+    said: set[str] = set()
+
+    def say(key: str, text: str) -> None:
+        if key not in said:
+            said.add(key)
+            typer.secho(text, fg=typer.colors.YELLOW)
+
+    async def probe(s: Settings) -> tuple[str, str | None]:
         async with _telegram_client() as client:
-            try:
-                chats = await find_chats(client, s.telegram_bot_token)
-            except TelegramSetupError:
-                return None
-        return str(chats[0].chat_id) if chats else None
+            handle = await get_me(client, s.telegram_bot_token)
+            if s.telegram_chat_id:
+                return handle, s.telegram_chat_id
+            chats = await find_chats(client, s.telegram_bot_token)
+        return handle, str(chats[0].chat_id) if chats else None
 
-    while (chat := asyncio.run(find())) is None:
-        _time.sleep(3)
-    set_env_value("TELEGRAM_CHAT_ID", chat)
-    os.environ["TELEGRAM_CHAT_ID"] = chat  # an empty env var would otherwise win over .env
-    typer.secho(f"  🔧 Found your chat ({chat}) and saved it to .env.", fg=typer.colors.CYAN)
+    while ui.poll() is None:
+        get_settings.cache_clear()
+        s = get_settings()
+        if not s.telegram_bot_token:
+            say("off", "Telegram is off (add a bot token in Setup to turn it on). Ctrl-C to stop.")
+        else:
+            try:
+                handle, chat = asyncio.run(probe(s))
+            except TelegramSetupError as e:
+                say(f"err:{e}", f"Telegram: {e}")
+            else:
+                if chat is None:
+                    say(handle, f"\n👉 Open https://t.me/{handle.lstrip('@')} in Telegram, "
+                                "press Start and send 'hi'. Waiting…")  # fmt: skip
+                else:
+                    if not s.telegram_chat_id:
+                        save_setting("TELEGRAM_CHAT_ID", chat)
+                        typer.secho(f"  🔧 Found your chat ({chat}) and saved it to .env.",
+                                    fg=typer.colors.CYAN)  # fmt: skip
+                        get_settings.cache_clear()
+                    return get_settings()
+        _time.sleep(TELEGRAM_POLL_S)
+    return None
+
+
+def _next_learn(s: Settings, after: datetime) -> datetime | None:
+    t = _learn_time(s)
+    if t is None:
+        return None
+    nxt = datetime.combine(after.date(), t)
+    return nxt if nxt > after else nxt + timedelta(days=1)
+
+
+def _background_tick(s: Settings, now: datetime, next_learn: datetime | None) -> datetime | None:
+    """One pass: send due demo emails; start the nightly learning cycle when it's time."""
+    from sdr_loop.jobs import JobBusy, JobStore
+    from sdr_loop.steps.send import dispatch_due
+
+    if s.email_mode == "mailpit":
+
+        async def send() -> list[str]:
+            repo = await _open_repo(s)
+            try:
+                return await dispatch_due(repo, s)
+            finally:
+                await repo.close()
+
+        for line in asyncio.run(send()):
+            logging.getLogger("sdr_loop.send").info("sent %s to the demo inbox", line)
+    if next_learn is not None and now >= next_learn:
+        try:
+            JobStore(s.state_dir).start(
+                "learn", ["learn"], label="Nightly learning cycle", source="schedule"
+            )
+        except JobBusy:
+            pass
+        return _next_learn(s, now)
+    return next_learn
+
+
+def _background_loop(stop: threading.Event) -> None:
     get_settings.cache_clear()
-    return get_settings()
+    next_learn = _next_learn(get_settings(), datetime.now().astimezone())
+    while not stop.wait(BACKGROUND_EVERY_S):
+        get_settings.cache_clear()  # pick up changes made on the Setup page
+        try:
+            next_learn = _background_tick(get_settings(), datetime.now().astimezone(), next_learn)
+        except Exception:  # noqa: BLE001  (keep the loop alive; the error is logged)
+            logging.getLogger(__name__).exception("background tick failed")
+
+
+BACKGROUND_EVERY_S = 10
 
 
 def _spawn(argv: list[str]) -> subprocess.Popen[bytes]:
@@ -279,25 +348,25 @@ def start(
     ):  # live Evaboot runs can be pushed to us instead of polled
         procs.append(_spawn([sys.executable, "-m", "sdr_loop.cli", "api"]))
     typer.secho(f"\n🖥  Control panel: http://{host}:{port}", fg=typer.colors.GREEN, bold=True)
+    stop = threading.Event()
+    threading.Thread(target=_background_loop, args=(stop,), daemon=True).start()
+    if s.learn_enabled:
+        typer.echo(f"🧠 Nightly learning at {s.learn_at}.")
+    if s.email_mode == "mailpit":
+        typer.echo(f"📬 Approved emails go to the demo inbox: {s.mailpit_ui_url or s.mailpit_url}")
     try:
-        tg = prep.get("telegram")
-        if tg.status == "fail" or not s.telegram_bot_token:
-            typer.echo("Telegram is off; review drafts in the control panel. Ctrl-C to stop.")
-            procs[0].wait()
-            return
-        if not s.telegram_chat_id:
-            s = _wait_for_chat(s, prep.bot_handle)
-        learn = _learn_time(s)
-        typer.secho(
-            "📱 Telegram bot is on: drafts arrive as they're ready; send /help to the bot."
-            + (f"\n🧠 Nightly learning at {s.learn_at}." if learn else "")
-            + "\nCtrl-C to stop.",
-            fg=typer.colors.GREEN,
-        )
-        _run_bot(s)
+        ready = _wait_for_telegram(procs[0])
+        if ready is not None:
+            typer.secho(
+                "📱 Telegram bot is on: drafts arrive as they're ready; send /help to the bot."
+                "\nCtrl-C to stop.",
+                fg=typer.colors.GREEN,
+            )
+            _run_bot(ready)
     except KeyboardInterrupt:
         pass
     finally:
+        stop.set()
         for p in procs:
             p.terminate()
         for p in procs:

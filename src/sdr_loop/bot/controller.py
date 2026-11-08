@@ -19,6 +19,7 @@ from sdr_loop.models import Lead
 from sdr_loop.observability import get_tracer, lead_trace_seed, step_span
 from sdr_loop.steps import approve as ap
 from sdr_loop.steps.outbox import write_outbox
+from sdr_loop.steps.send import schedule_sequence
 
 log = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class BotController:
             return Reply(f"Draft #{draft_id} was already {d.status}.")
         if kind == "a":
             await self.decide(draft_id, "approve")
-            return Reply(f"✅ Draft #{draft_id} approved and written to the outbox (dry run).")
+            return Reply(f"✅ Draft #{draft_id} approved. {self._delivery_note()}")
         if kind == "e":
             self._editing[str(chat_id)] = draft_id
             return Reply(
@@ -155,9 +156,16 @@ class BotController:
         except ap.EditFormatError as e:
             return Reply(f"Could not parse that: {e}", force_reply=True)
         del self._editing[str(chat_id)]
-        return Reply(
-            f"✏️ Draft #{draft_id} saved with your edit and written to the outbox (dry run)."
-        )
+        return Reply(f"✏️ Draft #{draft_id} saved with your edit. {self._delivery_note()}")
+
+    def _delivery_note(self) -> str:
+        s = self.settings
+        if s.email_mode == "mailpit":
+            return (
+                f"Email 1 goes to the demo inbox now, the follow-up in "
+                f"{s.followup_delay_minutes:g} min ({s.mailpit_ui_url or s.mailpit_url})."
+            )
+        return "Written to the outbox (dry run)."
 
     # ------------------------------------------------------------------ decisions
 
@@ -189,7 +197,8 @@ class BotController:
             else:
                 with step_span("outbox", input={"draft_id": draft_id}) as sp:
                     wrote = await write_outbox(self.repo, draft_id, self.settings.outbox_path)
-                    sp.update(output={"written": wrote})
+                    queued = await schedule_sequence(self.repo, draft_id, self.settings)
+                    sp.update(output={"written": wrote, "emails_scheduled": queued})
 
 
 _RUN_USAGE = (

@@ -109,9 +109,11 @@ async def test_prepare_uploads_only_missing_prompts(
     from sdr_loop import prompts
 
     keyed = settings.model_copy(update={"langfuse_public_key": "pk", "langfuse_secret_key": "sk"})
-    warn = health.Check("langfuse", "Langfuse", "warn", "Connected, but prompts missing: writer.")
+    warn = health.Check(
+        "langfuse", "Langfuse", "warn", "to upload: writer", action="upload_prompts"
+    )
     monkeypatch.setattr(health, "check_langfuse", lambda s: warn)
-    monkeypatch.setattr(prompts, "missing_prompts", lambda: ["writer"])
+    monkeypatch.setattr(prompts, "prompts_to_upload", lambda: ["writer"])
     pushed: list[list[str]] = []
     monkeypatch.setattr(
         prompts, "push_local_prompts", lambda names: pushed.append(names) or ["writer@local-1"]

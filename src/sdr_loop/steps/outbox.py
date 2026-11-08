@@ -21,16 +21,24 @@ def _append_line(path: Path, line: str) -> None:
         f.write(line + "\n")
 
 
-async def write_outbox(repo: Repository, draft_id: int, path: str | Path) -> bool:
-    """Append the approved sequence to the JSONL outbox. Returns False if already written."""
+async def final_sequence(repo: Repository, draft_id: int) -> Sequence:
+    """The sequence as the human approved it (their edit, if any). Requires an approval record."""
     draft = await repo.get_draft_by_id(draft_id)
     decision = await repo.get_decision(draft_id)
     if decision is None or decision.action not in ("approve", "edit"):
         raise NotApproved(f"draft {draft_id} has no approval record")
+    original = Sequence(email_1=Email(**draft.email_1), email_2=Email(**draft.email_2))
+    return parse_edit(decision.final_text or "", original)
+
+
+async def write_outbox(repo: Repository, draft_id: int, path: str | Path) -> bool:
+    """Append the approved sequence to the JSONL outbox. Returns False if already written."""
+    final = await final_sequence(repo, draft_id)
+    draft = await repo.get_draft_by_id(draft_id)
+    decision = await repo.get_decision(draft_id)
+    assert decision is not None
     if draft.status == "outboxed":
         return False
-    original = Sequence(email_1=Email(**draft.email_1), email_2=Email(**draft.email_2))
-    final = parse_edit(decision.final_text or "", original)
     lead = await repo.get_lead(draft.lead_id)
     record = {
         "draft_id": draft_id,

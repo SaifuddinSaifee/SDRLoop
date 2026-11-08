@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 
 from sdr_loop import llm
+from sdr_loop.campaign import current_brief
 from sdr_loop.models import ICP, Lead, Qualification
 from sdr_loop.prompts import PromptVersion, get_prompt
 
@@ -83,7 +84,12 @@ async def qualify_lead(
     if (rejected := rule_check(lead, icp)) is not None:
         return rejected, "rules"
     prompt = prompt or get_prompt("qualify")
-    user = json.dumps({"icp": icp.model_dump(), "lead": lead_payload(lead)}, ensure_ascii=False)
+    b = current_brief()
+    offer = {k: b[k] for k in ("company", "what_we_do", "who_its_for")}
+    user = json.dumps(
+        {"OUR_OFFER": offer, "icp": icp.model_dump(), "lead": lead_payload(lead)},
+        ensure_ascii=False,
+    )
     res = await llm.complete(
         "qualify",
         prompt.text,

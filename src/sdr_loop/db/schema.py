@@ -128,3 +128,23 @@ class PromptPromotion(Base):
     promoted: Mapped[bool] = mapped_column()
     detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class SendRow(Base):
+    """One email of an approved sequence. Step 1 is due on approval, step 2 after the follow-up
+    delay. Unique (draft, step): a retry or restart can never send the same email twice."""
+
+    __tablename__ = "sends"
+    __table_args__ = (UniqueConstraint("draft_id", "step"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    draft_id: Mapped[int] = mapped_column(ForeignKey("drafts.id"))
+    lead_id: Mapped[int] = mapped_column(ForeignKey("leads.id"))
+    step: Mapped[int] = mapped_column(Integer)  # 1 | 2
+    to_email: Mapped[str] = mapped_column(String(320))
+    subject: Mapped[str] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(16), default="scheduled")  # scheduled|sent|failed
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    message_id: Mapped[str | None] = mapped_column(String(255))
+    error: Mapped[str | None] = mapped_column(Text)
