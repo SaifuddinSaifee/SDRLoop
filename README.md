@@ -48,13 +48,31 @@ scores on the trace. The details that matter:
 
 How the app is built, as opposed to how a lead flows through it (the diagram above).
 
-**Diagram: [`docs/architecture.excalidraw`](docs/architecture.excalidraw)** (editable source). Open it by
-dragging the file onto [excalidraw.com](https://excalidraw.com), or with the VS Code *Excalidraw* extension.
-It shows five layers: entry points (CLI, FastAPI webhook, Telegram bot, Streamlit); the application
-(pipeline orchestrator and its seven steps, the read-only research tools, the learning loop); the platform
-(the single LLM gateway, Langfuse tracing, the repository, prompt management); the external services and
-storage behind them (Together AI, Langfuse Cloud, PostgreSQL, local files); and the stack.
-Blue marks the model gateway, red the untrusted-input boundary, purple the learning loop.
+```mermaid
+flowchart LR
+    S["🔎 Sales Navigator<br/>search"] --> E["📇 Evaboot<br/>leads + verified emails"]
+    E --> Q["🎯 Qualify<br/>is this a fit?"]
+    Q --> R["🌐 Research<br/>their website + news"]
+    R --> W["✍️ Write<br/>2-email sequence"]
+    W --> C["🧐 Critic<br/>checks every claim"]
+    C --> H["👤 You approve<br/>Telegram or web"]
+    H --> M["📬 Send<br/>email + follow-up"]
+
+    H -.->|edits and rejections| L["🧠 Learning loop<br/>tests a better prompt nightly"]
+    L -.->|promotes only if it wins<br/>with zero invented claims| W
+
+    classDef human fill:#fff4d6,stroke:#d9a400,color:#000
+    classDef learn fill:#efe4ff,stroke:#7a4fd0,color:#000
+    class H human
+    class L learn
+```
+
+Facts are quotes from pages the agent actually fetched, a critic from a different model family
+checks every claim, and nothing is sent without a human approval. **The detailed diagram is in
+[`docs/architecture.md`](docs/architecture.md).** It covers the interfaces, `sdr-loop start` and its background
+jobs, the seven pipeline steps, the learning loop, the single-door platform modules (LLM gateway,
+tools, repository, tracing, prompts, campaign brief, mailer) and the external services, with the
+reasoning behind each choice.
 
 | Layer | Choice |
 |---|---|
@@ -63,17 +81,18 @@ Blue marks the model gateway, red the untrusted-input boundary, purple the learn
 | HTTP | FastAPI + uvicorn for the Evaboot webhook; `httpx` for Evaboot, Together AI and the research tools; `tenacity` for retries |
 | Models | Together AI only, over its OpenAI-compatible API, behind one gateway: GLM-5.3 (write, challenger), GLM-5.3 Flash (research, qualify), DeepSeek V4.1 Flash (critic) |
 | Observability and prompts | Langfuse: traces, scores, and prompt versions with `production` / `challenger` labels |
-| Approval and UI | `python-telegram-bot` (long polling), Streamlit (review queue and KPI page) |
+| Approval and UI | `python-telegram-bot` (long polling, commands), Streamlit control panel (setup wizard, runs, review queue, sent emails, learning, KPIs) |
+| Email (demo) | `smtplib` to a local [Mailpit](https://mailpit.axllent.org) inbox only; threaded follow-ups |
 | Parsing and safety | `selectolax` (HTML to text), `defusedxml` (news RSS), `rapidfuzz` (edit distance) |
 | Quality | `pytest` + `pytest-asyncio`, `ruff`, `mypy --strict` on `src/`, GitHub Actions |
-| Packaging | Docker, Docker Compose (Postgres, migrations, API, bot, CLI) |
+| Packaging | Docker, Docker Compose (Postgres, migrations, Mailpit, API, control panel + bot via `sdr-loop start`, CLI) |
 
 The structure enforces a few rules, each with exactly one home:
 
 - **One door to models.** Only `llm.py` talks to a provider. Routing, retries, the fallback model, JSON-schema validation with a corrective retry, budget checks, cost accounting and the Langfuse generation span all live there, so no step can skip them.
 - **A fixed pipeline with one free agent.** `pipeline.py` orchestrates plain-Python steps; only research chooses its own actions, and its toolset is frozen, read-only and budgeted. Steps are idempotent by lead, so a crashed or budget-stopped run resumes by stage.
 - **One door to the database.** `memory.py` is the only module that issues queries; everything else works with typed objects.
-- **Telegram is transport, not logic.** The approval rules live in `BotController`, which the Streamlit page reuses, so a decision made on the web gets the same guards, tracing and outbox behaviour as one made on a phone.
+- **Telegram is transport, not logic.** The approval rules live in `BotController`, which the control panel reuses, so a decision made on the web gets the same guards, tracing and outbox behaviour as one made on a phone.
 - **Tests never touch a paid service.** `FakeProvider`, an offline HTTP transport serving recorded pages, and a SQLite database stand in for every dependency. The same suite also runs against Postgres.
 
 Why these choices were made is in [`docs/decisions.md`](docs/decisions.md).

@@ -1,45 +1,54 @@
-# Ideal customer profile: Evaboot's own customers (demo ICP).
+# Ideal customer profile: edit on the control panel's Setup page.
 name: evaboot-customers
-description: >
-  Lead-generation agencies, outbound/SDR teams and recruiting firms that prospect in
-  LinkedIn Sales Navigator and would buy a clean, verified-email lead export.
+description: Lead-generation agencies, outbound/SDR teams and recruiting firms that
+  prospect in LinkedIn Sales Navigator and would buy a clean, verified-email lead
+  export.
 industries:
-  - Marketing & Advertising
-  - Staffing & Recruiting
-  - Outsourcing/Offshoring
-  - Business Consulting & Services
-  - Computer Software
+- Marketing & Advertising
+- Staffing & Recruiting
+- Outsourcing/Offshoring
+- Business Consulting & Services
+- Computer Software
 min_headcount: 3
 max_headcount: 500
 title_keywords:
-  - founder
-  - ceo
-  - owner
-  - head of growth
-  - head of sales
-  - head of outbound
-  - sales manager
-  - sdr
-  - business development
-  - lead generation
-  - demand generation
-  - recruit
-  - talent
-  - growth
+- founder
+- ceo
+- owner
+- head of growth
+- head of sales
+- head of outbound
+- sales manager
+- sdr
+- business development
+- lead generation
+- demand generation
+- recruit
+- talent
+- growth
 title_exclude:
-  - intern
-  - student
-  - assistant
-  - engineer
-  - developer
-countries: [US, GB, FR, DE, CA, NL, ES, IE, BE, CH]
-# Competitors and existing customers are removed at qualify (E12).
+- intern
+- student
+- assistant
+- engineer
+- developer
+countries:
+- US
+- GB
+- FR
+- DE
+- CA
+- NL
+- ES
+- IE
+- BE
+- CH
 disqualifier_companies:
-  - Lemlist
-  - Waalaxy
-  - Apollo
-  - Skrapp
-  - Dux-Soup
-  - Evaboot
+- Lemlist
+- Waalaxy
+- Apollo
+- Skrapp
+- Dux-Soup
+- Evaboot
 disqualifier_keywords:
-  - competitor
+- competitor
