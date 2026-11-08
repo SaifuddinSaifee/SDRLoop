@@ -6,18 +6,24 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Task = Literal["qualify", "research", "write", "critic", "challenger"]
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
     together_api_key: str = ""
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
-    langfuse_host: str = "https://cloud.langfuse.com"
+    # Langfuse's docs call this LANGFUSE_BASE_URL; accept both. The region matters: keys from
+    # us./jp. cloud return 401 on the default EU host.
+    langfuse_host: str = Field(
+        "https://cloud.langfuse.com",
+        validation_alias=AliasChoices("LANGFUSE_HOST", "LANGFUSE_BASE_URL"),
+    )
     evaboot_api_key: str = ""
     evaboot_webhook_secret: str = "change-me"
     public_webhook_url: str = ""

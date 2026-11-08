@@ -78,3 +78,14 @@ def test_http_client_loggers_are_silenced_so_tokens_never_reach_logs() -> None:
     _setup_logging()
     for name in ("httpx", "httpcore", "telegram"):
         assert logging.getLogger(name).getEffectiveLevel() >= logging.WARNING
+
+
+def test_langfuse_base_url_alias_is_honoured(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ignoring LANGFUSE_BASE_URL sent JP keys to the EU server (401)."""
+    from sdr_loop.config import Settings
+
+    monkeypatch.delenv("LANGFUSE_HOST", raising=False)
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
+    assert Settings(_env_file=None).langfuse_host == "https://jp.cloud.langfuse.com"  # type: ignore[call-arg]
+    monkeypatch.setenv("LANGFUSE_HOST", "https://us.cloud.langfuse.com")
+    assert Settings(_env_file=None).langfuse_host == "https://us.cloud.langfuse.com"  # type: ignore[call-arg]
