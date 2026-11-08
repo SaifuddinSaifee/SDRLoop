@@ -10,3 +10,5 @@ outbox.jsonl
 dist/
 data/
 .sdr-loop/
+*.db-wal
+*.db-shm
