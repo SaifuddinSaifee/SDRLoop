@@ -25,6 +25,9 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("LANGFUSE_HOST", "LANGFUSE_BASE_URL"),
     )
     evaboot_api_key: str = ""
+    # live = the real Evaboot API (needs a Sales Navigator seat + credits);
+    # simulated = a local stand-in returning a demo export of real companies (evaboot_sim.py)
+    evaboot_mode: Literal["live", "simulated"] = "live"
     evaboot_webhook_secret: str = "change-me"
     public_webhook_url: str = ""
     telegram_bot_token: str = ""

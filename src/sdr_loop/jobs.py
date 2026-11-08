@@ -80,6 +80,12 @@ class Job:
         total = re.findall(r"processing (\d+) leads", log)
         return (0, int(total[-1])) if total else None
 
+    def extraction_progress(self) -> int | None:
+        """Evaboot's extraction percentage while it runs (before lead processing starts)."""
+        log = self.log_path.read_text(errors="replace") if self.log_path.exists() else ""
+        found = re.findall(r"Evaboot extraction \S+: \w+ (\d+)%", log)
+        return int(found[-1]) if found else None
+
     def summary(self) -> str:
         """The command's own report (the last `Run N:` / `learn:` block), or the error line."""
         log = self.log_path.read_text(errors="replace") if self.log_path.exists() else ""

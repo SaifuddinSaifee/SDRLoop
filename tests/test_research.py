@@ -236,3 +236,72 @@ def test_validate_facts_rules() -> None:
 
 
 _: Awaitable[None] | None = None
+
+
+# ---------------------------------------------------------------------- redirects (found live)
+
+
+def _site(routes: dict[str, httpx.Response]) -> httpx.AsyncClient:
+    def handler(req: httpx.Request) -> httpx.Response:
+        return routes.get(str(req.url), httpx.Response(404))
+
+    return httpx.AsyncClient(transport=httpx.MockTransport(handler))
+
+
+async def _fetch(http: httpx.AsyncClient, url: str, public: bool = True):  # type: ignore[no-untyped-def]
+    from sdr_loop.tools.base import ToolContext
+    from sdr_loop.tools.fetch_page import FetchPage
+
+    async def is_public(_h: str) -> bool:
+        return public
+
+    lead = Lead(linkedin_url="x", full_name="x", company="Acme", company_website="https://acme.io")
+    return await FetchPage().run(
+        {"url": url}, ToolContext(lead=lead, http=http, host_is_public=is_public)
+    )
+
+
+HTML = {"content-type": "text/html; charset=utf-8"}
+
+
+async def test_fetch_follows_same_site_redirects() -> None:
+    routes = {
+        "https://acme.io/": httpx.Response(301, headers={"location": "https://www.acme.io/"}),
+        "https://www.acme.io/": httpx.Response(302, headers={"location": "/en/"}),
+        "https://www.acme.io/en/": httpx.Response(200, headers=HTML,
+                                                  text="<body><p>Acme books meetings.</p></body>"),
+    }  # fmt: skip
+    async with _site(routes) as http:
+        r = await _fetch(http, "https://acme.io/")
+    assert r.ok and r.text == "Acme books meetings."
+    assert r.source_url == "https://www.acme.io/en/"  # facts cite the page they really came from
+
+
+async def test_redirect_off_the_company_site_is_refused() -> None:
+    routes = {
+        "https://acme.io/": httpx.Response(301, headers={"location": "https://evil.example/"})
+    }
+    async with _site(routes) as http:
+        r = await _fetch(http, "https://acme.io/")
+    assert not r.ok and "redirect" in (r.error or "")
+
+
+async def test_redirect_loops_and_stub_bodies_are_errors() -> None:
+    loop = {
+        "https://acme.io/a": httpx.Response(301, headers={"location": "https://acme.io/b"}),
+        "https://acme.io/b": httpx.Response(301, headers={"location": "https://acme.io/a"}),
+    }
+    async with _site(loop) as http:
+        r = await _fetch(http, "https://acme.io/a")
+    assert not r.ok and "too many redirects" in (r.error or "")
+    stub = {"https://acme.io/": httpx.Response(301, text="301 Moved Permanently")}  # no Location
+    async with _site(stub) as http:
+        r = await _fetch(http, "https://acme.io/")
+    assert not r.ok  # a redirect stub is never "page text"
+
+
+async def test_redirect_to_private_address_is_refused() -> None:
+    routes = {"https://acme.io/": httpx.Response(301, headers={"location": "https://int.acme.io/"})}
+    async with _site(routes) as http:
+        r = await _fetch(http, "https://acme.io/", public=False)
+    assert not r.ok and "public" in (r.error or "")

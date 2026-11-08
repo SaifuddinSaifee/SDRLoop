@@ -1,39 +1,37 @@
 # Campaign brief: edit on the control panel's Setup page.
-# Claims below are taken from evaboot.com and evaboot.com/pricing (read 2026-11-08).
 company: Evaboot
 website: https://evaboot.com
-one_liner: >-
-  Evaboot exports lead lists from LinkedIn Sales Navigator to a clean CSV and finds and verifies
+one_liner: Evaboot exports lead lists from LinkedIn Sales Navigator to a clean CSV and finds and verifies
   each lead's professional email, in one click.
-audience: >-
-  Sales, outbound and lead-generation teams that prospect in LinkedIn Sales Navigator (they need
+audience: Sales, outbound and lead-generation teams that prospect in LinkedIn Sales Navigator (they need
   their own Sales Navigator seat).
-pain: >-
-  Building an email list from Sales Navigator by hand takes hours: copying profiles one by one,
-  cleaning names, and checking emails, and Sales Navigator results include leads that don't
-  actually match the search filters.
+pain: 'Building an email list from Sales Navigator by hand takes hours: copying profiles one by one, cleaning
+  names, and checking emails, and Sales Navigator results include leads that don''t actually match the
+  search filters.'
 value: Build email lists in seconds, not hours. Pay per lead, not per seat.
 allowed_claims:
-  - Exports lead lists and searches from LinkedIn Sales Navigator to a clean CSV file
-  - Cleans first names, last names, job titles and company names (emojis, credentials, legal suffixes) for outreach
-  - Checks whether leads truly match your Sales Navigator filters and removes false positives
-  - Finds professional emails and verifies each one exists before you send
-  - Pushes new leads to HubSpot, Pipedrive, Attio, lemlist or Instantly
-  - Can schedule a Sales Navigator search daily, weekly or monthly so new leads arrive automatically
-  - Has an API, an MCP server, and Zapier, Make and n8n actions
-  - Unlimited seats, priced per lead (plans start at $9/month for 100 credits)
-  - Used by 200,000+ users, rated 4.6/5
+- Exports lead lists and searches from LinkedIn Sales Navigator to a clean CSV file
+- Cleans first names, last names, job titles and company names (emojis, credentials, legal suffixes) for
+  outreach
+- Checks whether leads truly match your Sales Navigator filters and removes false positives
+- Finds professional emails and verifies each one exists before you send
+- Pushes new leads to HubSpot, Pipedrive, Attio, lemlist or Instantly
+- Can schedule a Sales Navigator search daily, weekly or monthly so new leads arrive automatically
+- Has an API, an MCP server, and Zapier, Make and n8n actions
+- Unlimited seats, priced per lead (plans start at $9/month for 100 credits)
+- Used by 200,000+ users, rated 4.6/5
 forbidden_claims:
-  - a free trial or free credits (not stated on the site)
-  - phone numbers (Evaboot does not find them)
-  - that a LinkedIn account can never be flagged
-  - naming any company as a customer
-  - accuracy or bounce-rate percentages
+- a free trial or free credits (not stated on the site)
+- phone numbers (Evaboot does not find them)
+- that a LinkedIn account can never be flagged
+- naming any company as a customer
+- accuracy or bounce-rate percentages
 goal: Book a short demo call with people who build lead lists in Sales Navigator.
-ask: A 15-minute call this week, or a yes/no reply.
+ask: A 15-minute call this week.
 tone: Plain, peer-to-peer, specific. No hype, no flattery.
 sender:
   name: Saif
   title: Growth, Evaboot
   email: saif@evaboot.test
-search_urls: []
+search_urls:
+- https://www.linkedin.com/sales/search/people?query=(recentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList((type%3AFUNCTION%2Cvalues%3AList((id%3A25%2Ctext%3ASales%2CselectionType%3AINCLUDED)%2C(id%3A4%2Ctext%3ABusiness%2520Development%2CselectionType%3AINCLUDED)))%2C(type%3ACOMPANY_HEADCOUNT%2Cvalues%3AList((id%3AC%2Ctext%3A11-50%2CselectionType%3AINCLUDED)%2C(id%3AD%2Ctext%3A51-200%2CselectionType%3AINCLUDED)%2C(id%3AE%2Ctext%3A201-500%2CselectionType%3AINCLUDED)))%2C(type%3AINDUSTRY%2Cvalues%3AList((id%3A80%2Ctext%3AMarketing%2520Services%2CselectionType%3AINCLUDED)%2C(id%3A104%2Ctext%3AStaffing%2520and%2520Recruiting%2CselectionType%3AINCLUDED)))))

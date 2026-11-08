@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
 
 from sdr_loop.tools.base import MAX_TEXT_CHARS, ToolContext, ToolResult, host_allowed
 
 MAX_BYTES = 500_000
+MAX_REDIRECTS = 4
 _WS = re.compile(r"\s+")
 
 
@@ -36,12 +37,26 @@ class FetchPage:
 
     async def run(self, args: dict[str, Any], ctx: ToolContext) -> ToolResult:
         url = str(args.get("url", "")).strip()
-        if not host_allowed(url, ctx.lead.company_website):
-            return ToolResult(False, source_url=url, error="domain not allowed: company site only")
-        host = urlsplit(url).hostname or ""
-        if not await ctx.host_is_public(host):
-            return ToolResult(False, source_url=url, error="host is not publicly routable")
-        r = await ctx.http.get(url, timeout=ctx.timeout_s, follow_redirects=False)
+        for hop in range(MAX_REDIRECTS + 1):
+            # Every hop is re-checked: a redirect must not leave the company site or point at a
+            # private address (SSRF). So redirects are followed by hand, never by httpx.
+            if not host_allowed(url, ctx.lead.company_website):
+                why = "redirect left the company site" if hop else "domain not allowed"
+                return ToolResult(False, source_url=url, error=f"{why}: company site only")
+            if not await ctx.host_is_public(urlsplit(url).hostname or ""):
+                return ToolResult(False, source_url=url, error="host is not publicly routable")
+            r = await ctx.http.get(url, timeout=ctx.timeout_s, follow_redirects=False)
+            if not r.is_redirect:
+                break
+            if not (location := r.headers.get("location")):
+                return ToolResult(
+                    False, source_url=url, error=f"http {r.status_code} without Location"
+                )
+            url = urljoin(url, location)
+        else:
+            return ToolResult(False, source_url=url, error="too many redirects")
+        if 300 <= r.status_code < 400:
+            return ToolResult(False, source_url=url, error=f"http {r.status_code}")
         if r.status_code >= 400:
             return ToolResult(False, source_url=url, error=f"http {r.status_code}")
         if "html" not in r.headers.get("content-type", "text/html"):

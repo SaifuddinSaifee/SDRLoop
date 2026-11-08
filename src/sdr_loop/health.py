@@ -26,6 +26,7 @@ from sdr_loop.memory import Repository
 
 Status = Literal["ok", "warn", "fail"]
 TOGETHER_MODELS_URL = "https://api.together.ai/v1/models"
+EVABOOT_API = "https://api.evaboot.com"
 
 
 @dataclass(frozen=True)
@@ -164,21 +165,49 @@ def check_langfuse(s: Settings, client_factory: Callable[[], Any] | None = None)
     return Check("langfuse", name, "ok", f"Connected to {s.langfuse_host}; prompts in place")
 
 
-def check_evaboot(s: Settings) -> Check:
-    name = "Evaboot (real leads from Sales Navigator)"
+async def check_evaboot(s: Settings, client: httpx.AsyncClient) -> Check:
+    name = "Evaboot (leads from Sales Navigator)"
+    searches = load_campaign()[0].search_urls
+    if s.evaboot_mode == "simulated":
+        if not searches:
+            return Check(
+                "evaboot", name, "warn", "Simulated, but no Sales Navigator search saved yet.",
+                "Setup → Leads: paste a Sales Navigator search URL.",
+            )  # fmt: skip
+        return Check(
+            "evaboot", name, "ok",
+            f"Simulated Evaboot (demo export of real companies); {len(searches)} search(es) saved",
+        )  # fmt: skip
     if not s.evaboot_api_key:
         return Check(
             "evaboot", name, "warn", "No key: runs use the recorded export (fixture) only.",
             "Setup → Leads: paste your Evaboot API key.",
         )  # fmt: skip
-    searches = load_campaign()[0].search_urls
+    try:
+        r = await client.get(
+            f"{EVABOOT_API}/v1/quota/", headers={"Authorization": f"Bearer {s.evaboot_api_key}"}
+        )
+    except httpx.HTTPError:
+        r = None
+    if r is not None and r.status_code in (401, 403):
+        return Check("evaboot", name, "fail", "Evaboot rejected the API key.",
+                     "Copy it again from Evaboot → Integrations → API.")  # fmt: skip
+    quota = (r.json().get("quota") or {}) if r is not None and r.status_code == 200 else {}
+    if quota and not quota.get("has_valid_salesnav"):
+        return Check(
+            "evaboot", name, "warn",
+            f"Key works, but no Sales Navigator seat is connected to Evaboot "
+            f"(credits: {quota.get('credits', 0):g}). Live extraction can't run.",
+            "Setup → Leads: switch to Simulated for a demo, or connect a Sales Navigator seat.",
+        )  # fmt: skip
     if not searches:
         return Check(
             "evaboot", name, "warn", "Key set, but no Sales Navigator search saved yet.",
             "Setup → Leads: paste a Sales Navigator search URL.",
         )  # fmt: skip
     how = "webhook" if s.public_webhook_url else "polling"
-    return Check("evaboot", name, "ok", f"Key set; {len(searches)} search(es) saved; {how}")
+    credits = f"{quota['credits']:g} credits; " if "credits" in quota else ""
+    return Check("evaboot", name, "ok", f"Live; {credits}{len(searches)} search(es) saved; {how}")
 
 
 def check_campaign() -> Check:
@@ -243,17 +272,18 @@ async def run_checks(
     own = client is None
     http = client or httpx.AsyncClient(timeout=10)
     try:
-        db, together, (tg, handle, chat), lf, email = await asyncio.gather(
+        db, together, (tg, handle, chat), lf, email, evaboot = await asyncio.gather(
             check_database(s),
             check_together(s, http),
             check_telegram(s, http, discover=discover_chat),
             asyncio.to_thread(check_langfuse, s),
             check_email(s, http),
+            check_evaboot(s, http),
         )
     finally:
         if own:
             await http.aclose()
-    return [check_campaign(), together, check_evaboot(s), email, tg, lf, db], handle, chat
+    return [check_campaign(), together, evaboot, email, tg, lf, db], handle, chat
 
 
 async def prepare(

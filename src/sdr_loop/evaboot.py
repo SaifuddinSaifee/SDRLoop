@@ -8,9 +8,12 @@ GET  /v1/extractions/{id}/ -> 202 while running (progress); 200 when status == E
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 BASE_URL = "https://api.evaboot.com"
 DONE = "EXECUTED"
@@ -69,6 +72,9 @@ class EvabootClient:
         while True:
             page = await self.get_page(extraction_id)
             status = page.get("status")
+            pct = page.get("progress")
+            log.info("Evaboot extraction %s: %s%s", extraction_id, status,
+                     f" {pct}%" if pct is not None else "")  # fmt: skip
             if status in FAILED:
                 raise EvabootError(f"extraction failed: {page.get('failure_reason')}")
             if page["_http_status"] == 200 and status == DONE:

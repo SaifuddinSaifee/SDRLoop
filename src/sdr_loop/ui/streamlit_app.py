@@ -142,7 +142,7 @@ def run_form(checks: dict[str, health.Check]) -> None:
     url = url or ""
     if live and "linkedin.com/sales" not in url:
         st.error("Paste a Sales Navigator search URL (linkedin.com/sales/...) for a live run.")
-    elif live and not get_settings().evaboot_api_key:
+    elif live and get_settings().evaboot_mode == "live" and not get_settings().evaboot_api_key:
         st.error("A live run needs your Evaboot API key: Setup → Leads.")
     elif not demo and checks["together"].status == "fail":
         st.error("Real runs need a working TOGETHER_API_KEY. Tick Demo mode to try it without AI.")
@@ -169,6 +169,10 @@ def _job_status(job: Job) -> None:
         st.info(f"⏳ **{job.label}**: running for {secs}s")
         if (p := job.progress()) is not None and p[1]:
             st.progress(p[0] / p[1], text=f"{p[0]} of {p[1]} leads done")
+        elif (pct := job.extraction_progress()) is not None:
+            st.progress(
+                pct / 100, text=f"Evaboot is extracting your Sales Navigator search… {pct}%"
+            )
         with st.expander("Live log"):
             st.code(job.log_tail(25) or "starting…", language=None)
         return

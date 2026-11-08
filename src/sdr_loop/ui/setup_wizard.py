@@ -202,7 +202,17 @@ def leads_step(s: Settings, clear: Callable[[], None]) -> None:
         "Only leads with a `safe` email are processed. Use **Limit** on the Home page to keep the "
         "first runs small."
     )
+    modes = {
+        "Live: the real Evaboot API (your Sales Navigator seat + credits)": "live",
+        "Simulated: a demo export of real companies (no Sales Navigator needed)": "simulated",
+    }
     with st.form("leads"):
+        mode = st.radio(
+            "Evaboot connection", list(modes),
+            index=list(modes.values()).index(s.evaboot_mode),
+            help="Simulated speaks the same API locally: every later step (research, AI, "
+            "approval, email) is real.",
+        )  # fmt: skip
         key = _secret("Evaboot API key", bool(s.evaboot_api_key), "evaboot_key")
         urls = st.text_area(
             "Sales Navigator search URLs (one per line; copy from your browser)",
@@ -216,6 +226,7 @@ def leads_step(s: Settings, clear: Callable[[], None]) -> None:
                 return
             if key:
                 save_setting("EVABOOT_API_KEY", key)
+            save_setting("EVABOOT_MODE", modes[mode])
             save_campaign(c.model_copy(update={"search_urls": _lines(urls)}))
             _saved("Saved.", clear)
 

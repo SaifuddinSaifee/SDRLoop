@@ -119,6 +119,13 @@ everything and delivers nothing. Leads, addresses and research can all be real, 
 an email. The guard is in code: `EMAIL_MODE` must be `mailpit`, and any SMTP host other than
 localhost or `mailpit` is refused. v1 has no code path to a real mail server.
 
+**Simulated Evaboot.** `EVABOOT_MODE=simulated` (Setup → Real leads) routes the real Evaboot
+client to a local stand-in that speaks the documented API. It returns an export of **real
+companies** (live websites, read by the research step) with **fictional people**, for demos
+without a Sales Navigator seat or credits. Everything after extraction is unchanged. In live mode,
+the Setup page shows your Evaboot credits and whether a Sales Navigator seat is connected. The
+recording walkthrough is in [`docs/DEMO.md`](docs/DEMO.md).
+
 **The campaign brief** ([`campaign.yaml`](campaign.yaml), edited in Setup → Company & offer)
 tells the writer who it writes for. The prompts carry no company name. The default brief is
 Evaboot, with claims taken from evaboot.com. Statements about us are held to the same rule as

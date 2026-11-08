@@ -142,17 +142,29 @@ async def _run(
             run_id, ext = await start_fixture_run(repo, FIXTURE_CSV, icp_version)
         else:
             assert url
-            if not s.evaboot_api_key:
+            simulated = s.evaboot_mode == "simulated"
+            if not (simulated or s.evaboot_api_key):
                 raise _fail(
                     "EVABOOT_API_KEY is not set. Use --fixture to run on the recorded export."
                 )
             run_id = await repo.create_run(url, icp_version)
             hook = (
                 f"{s.public_webhook_url.rstrip('/')}/webhooks/evaboot/{s.evaboot_webhook_secret}/{run_id}"
-                if s.public_webhook_url
+                if s.public_webhook_url and not simulated
                 else None
             )
-            await run_live_extraction(repo, EvabootClient(s.evaboot_api_key), run_id, url, hook)
+            if simulated:
+                from sdr_loop.evaboot import BASE_URL
+                from sdr_loop.evaboot_sim import EvabootSimulator
+
+                sim = httpx.AsyncClient(transport=EvabootSimulator().transport(), base_url=BASE_URL)
+                client = EvabootClient("simulated", client=sim)
+                typer.echo("Evaboot: simulated (demo export of real companies).")
+            else:
+                client = EvabootClient(s.evaboot_api_key)
+            await run_live_extraction(
+                repo, client, run_id, url, hook, poll_s=3.0 if simulated else 5.0
+            )
             run = await repo.get_run(run_id)
             if run is None or run.status != "extracted":
                 raise _fail(f"Extraction failed: {run.failure_reason if run else 'unknown'}")

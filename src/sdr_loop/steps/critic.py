@@ -31,11 +31,15 @@ BANNED = (
 )  # fmt: skip
 _LINK = re.compile(r"https?://|www\.", re.IGNORECASE)
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
+# Phrases that ask the reader for something. Verbs like "book"/"schedule" only count with a
+# meeting object: "Evaboot can schedule a search" describes the product, it asks nothing.
 _CTA = re.compile(
-    r"\b(let me know|reply|book|schedule|grab|hop on|open to|worth a|can we|could we|would you|"
+    r"\b(let me know|reply|(?:book|schedule|grab|find) (?:a|some|15|20|30)\b[^.?!]{0,20}?"
+    r"\b(?:call|chat|time|minutes|meeting)|hop on|open to|worth a|can we|could we|would you|"
     r"are you|do you|interested in|free for)\b",
     re.IGNORECASE,
 )
+_FACT_MARKER = re.compile(r"[\[(]\s*f\d+(?:\s*,\s*f\d+)*\s*[\])]", re.IGNORECASE)
 FAITHFUL_MIN, AVG_MIN = 4, 3.5
 
 
@@ -67,6 +71,8 @@ def code_checks(seq: Sequence, facts: list[Fact]) -> CodeCheckResult:
             fails.append(f"{name}: more than {MAX_LINKS} link")
         if not e.subject.strip() or len(e.subject) > MAX_SUBJECT_CHARS:
             fails.append(f"{name}: subject missing or over {MAX_SUBJECT_CHARS} chars")
+        if _FACT_MARKER.search(e.body):
+            fails.append(f"{name}: fact id marker in the email text (ids belong in claims only)")
         if (a := ask_count(e.body)) != 1:
             fails.append(f"{name}: must contain exactly one ask, found {a}")
         for c in e.claims:

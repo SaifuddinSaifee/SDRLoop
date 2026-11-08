@@ -140,3 +140,38 @@ async def test_first_pass_success_makes_one_write_one_critic_call(
     fake_llm["judge"].script = [scores()]
     out = await write_with_critic(lead(), FACTS)
     assert out.attempts == 1 and out.report.passed and out.flags == []
+
+
+# ---------------------------------------------------------------------- found in the first real run
+
+
+@pytest.mark.parametrize(
+    ("body", "asks"),
+    [
+        ("Evaboot can also schedule a Sales Navigator search daily. Open to a call?", 1),
+        ("We book meetings for agencies. Worth a 15-minute call this week?", 1),
+        ("Open to a 15-minute call this week? A yes/no reply works too.", 2),
+        ("Can we book a call this week?", 1),
+        ("Let me know if a call makes sense.", 1),
+    ],
+)
+def test_ask_count_ignores_product_verbs(body: str, asks: int) -> None:
+    from sdr_loop.steps.critic import ask_count
+
+    assert ask_count(body) == asks
+
+
+def test_fact_ids_in_the_email_body_fail_code_checks() -> None:
+    from sdr_loop.models import Claim, Email, Fact, Sequence
+    from sdr_loop.steps.critic import code_checks
+
+    facts = [Fact(id="f1", source_url="https://a.io", snippet="Acme launched in 2022.")]
+    seq = Sequence(
+        email_1=Email(subject="Hi", body="Acme launched in 2022 [f1]. Open to a call?",
+                      claims=[Claim(text="launched in 2022", fact_ids=["f1"])]),
+        email_2=Email(subject="Re: Hi", body="Since launch (f1), a lot changed. Worth a reply?",
+                      claims=[]),
+    )  # fmt: skip
+    fails = code_checks(seq, facts).failures
+    assert any("email_1: fact id marker" in f for f in fails)
+    assert any("email_2: fact id marker" in f for f in fails)
