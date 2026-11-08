@@ -30,7 +30,9 @@ uv run sdr-loop start          # all Setup checks should be ✅
 3. **Telegram: drafts arrive one by one** while the run is still going. Each draft has
    Approve / Edit / Reject buttons.
    - **Approve** one: the reply says email 1 is on its way to the inbox.
-   - **Edit** one: reply with your version (email 1, a line with `---`, email 2).
+   - **Edit** one: reply with what to change, e.g. *"make it shorter"*. The bot says
+     "Rewriting…", and the new version comes back, critic-checked, with the same buttons. (Or
+     reply with the full text yourself: email 1, a line with `---`, email 2.)
    - **Reject** one: pick a one-tap reason (e.g. *bad tone*).
 
 4. **Review queue** (control panel): the draft beside the **cited sources**. Each fact is a

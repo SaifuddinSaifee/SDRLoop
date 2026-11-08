@@ -97,7 +97,7 @@ async def test_edit_flow_waits_for_text_then_records_edit(
     prompt = await c.on_action(OWNER, f"e:{did}")
     assert prompt is not None and prompt.force_reply
     assert (await c.repo.get_decision(did)) is None  # nothing decided yet
-    bad = await c.on_text(OWNER, "no separator here")
+    bad = await c.on_text(OWNER, "Subject: S\n\nOnly one email\n---\n")  # empty email 2
     assert bad is not None and "Could not parse" in bad.text and bad.force_reply
     ok = await c.on_text(OWNER, "Subject: S\n\nShort one. Open to a call?\n---\nBump. Reply?")
     assert ok is not None and "saved" in ok.text

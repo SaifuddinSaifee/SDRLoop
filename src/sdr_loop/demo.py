@@ -67,6 +67,16 @@ def writer_script(
     if system.startswith("You write a two-email"):
         payload = _user_json(messages)
         company = payload["lead"]["company"]
+        if payload.get("previous_draft"):  # a human asked for changes: a tighter canned version
+            return json.dumps({
+                "email_1": {"subject": f"Quick one for {company}"[:70],
+                            "body": f"Hi, one idea for {company}: verified emails straight from "
+                                    "your Sales Navigator searches. Open to a quick call?",
+                            "claims": []},
+                "email_2": {"subject": "Re: quick one",
+                            "body": "Every email is checked before export. Worth a reply?",
+                            "claims": []},
+            })  # fmt: skip
         has_fact = bool(payload["facts"])
         e1 = {
             "subject": f"Idea for {company}"[:70],

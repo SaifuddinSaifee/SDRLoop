@@ -119,7 +119,10 @@ uv run sdr-loop start     # opens the control panel; its Setup page walks you th
      It opens automatically until the required steps pass.
    - **Home:** start a run (live Sales Navigator search or the recorded export), watch its
      progress live, and see setup status.
-   - **Review queue:** each draft next to its cited sources, with Approve / Edit / Reject.
+   - **Review queue:** each draft next to its cited sources, with Approve / Edit / Reject, or
+     **Rewrite**: say what to change ("shorter, lead with their launch"), and the writer
+     revises the draft and the critic checks it again. Telegram's Edit button works the same
+     way.
    - **Sent emails:** what went to the demo inbox, plus "send the follow-ups now".
    - **Learning:** run a learning cycle and see the promotion history.
    - **KPIs.**

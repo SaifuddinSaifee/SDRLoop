@@ -56,6 +56,7 @@ def _no_real_services(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         monkeypatch.setenv(k, "")
     monkeypatch.setenv("OFFLINE", "true")
     monkeypatch.setenv("EMAIL_MODE", "off")
+    monkeypatch.setenv("EVABOOT_MODE", "live")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

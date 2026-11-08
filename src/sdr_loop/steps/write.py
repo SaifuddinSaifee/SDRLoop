@@ -26,6 +26,7 @@ def writer_input(
     facts: list[Fact],
     revision_notes: str | None = None,
     about_us: dict[str, object] | None = None,
+    previous: Sequence | None = None,
 ) -> str:
     payload: dict[str, object] = {
         "ABOUT_US": about_us if about_us is not None else current_brief(),
@@ -37,6 +38,11 @@ def writer_input(
         },
         "facts": [{"id": f.id, "kind": f.kind, "snippet": f.snippet} for f in facts],
     }
+    if previous is not None:  # a human asked for changes: edit this draft, don't start over
+        payload["previous_draft"] = {
+            name: {"subject": e.subject, "body": e.body}
+            for name, e in (("email_1", previous.email_1), ("email_2", previous.email_2))
+        }
     if revision_notes:
         payload["revision_notes"] = (
             "A reviewer rejected your previous draft. Fix these problems:\n" + revision_notes
@@ -49,12 +55,13 @@ async def write_sequence(
     facts: list[Fact],
     prompt: PromptVersion | None = None,
     revision_notes: str | None = None,
+    previous: Sequence | None = None,
 ) -> tuple[Sequence, str]:
     prompt = prompt or get_prompt("writer")
     res = await llm.complete(
         "write",
         prompt.text,
-        [{"role": "user", "content": writer_input(lead, facts, revision_notes)}],
+        [{"role": "user", "content": writer_input(lead, facts, revision_notes, previous=previous)}],
         response_model=Sequence,
         max_tokens=1200,
     )

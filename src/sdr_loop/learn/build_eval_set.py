@@ -25,13 +25,21 @@ async def build_eval_cases(repo: Repository) -> int:
             assert draft is not None
             lead = await repo.get_lead(draft.lead_id)
             facts = await repo.get_facts(draft.lead_id)
+            revisions = await repo.list_revisions(draft.id)
+            # The lesson is writer's FIRST draft vs the human's final text, not the last rewrite.
+            original = (
+                {k: revisions[0].before[k] for k in ("email_1", "email_2")}
+                if revisions
+                else {"email_1": draft.email_1, "email_2": draft.email_2}
+            )
             case_input = {
                 "lead": {  # no email / LinkedIn URL: eval inputs are replayed through LLMs
                     "full_name": lead.name, "title": lead.title, "company": lead.company,
                     "industry": lead.industry, "country": lead.country,
                 },
                 "facts": [f.model_dump() for f in facts],
-                "original": {"email_1": draft.email_1, "email_2": draft.email_2},
+                "original": original,
+                "revisions": [r.instruction for r in revisions],
                 "reason": d.reason,
                 "prompt_version": draft.prompt_version,
             }  # fmt: skip

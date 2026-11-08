@@ -27,6 +27,7 @@ from sdr_loop.memory import Repository
 from sdr_loop.models import Email, Sequence
 from sdr_loop.observability import init_tracer_from_settings
 from sdr_loop.steps import approve as ap
+from sdr_loop.steps.revise import RevisionLimit
 from sdr_loop.steps.send import dispatch_due
 from sdr_loop.ui.setup_wizard import setup_page
 
@@ -253,10 +254,20 @@ def review_page() -> None:
         st.subheader(f"{lead.name}, {lead.title} @ {lead.company}")
         if d.flagged:
             st.warning(f"Flagged: {d.flag_reason}")
-        text = st.text_area("Draft (edit freely; keep `---` between the two emails)",
-                            ap.sequence_text(seq), height=380, key=f"text-{d.id}")  # fmt: skip
+        revisions = run(lambda r: r.list_revisions(d.id))
+        for rv in revisions:
+            st.caption(f"🔁 Revision {rv.n}: “{rv.instruction}”")
+        text = st.text_area(
+            "Draft (edit freely; keep `---` between the two emails)",
+            ap.sequence_text(seq), height=380, key=f"text-{d.id}-{len(revisions)}",
+        )  # fmt: skip
+        ask = st.text_input(
+            "Or say what to change, and the writer rewrites it",
+            placeholder="e.g. shorter, and lead with their 14-day launch",
+            key=f"ask-{d.id}-{len(revisions)}",
+        )
         reason = st.selectbox("Reject reason", ap.REJECT_REASONS, key=f"reason-{d.id}")
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4 = st.columns(4)
 
         def controller(repo: Repository) -> BotController:
             return BotController(repo, get_settings())
@@ -271,8 +282,17 @@ def review_page() -> None:
             if c3.button("🗑 Reject", key=f"r-{d.id}"):
                 run(lambda r: controller(r).decide(d.id, "reject", reason=reason))
                 st.rerun()
+            if c4.button("🔁 Rewrite", key=f"rw-{d.id}"):
+                if not ask.strip():
+                    st.warning("Say what to change first, e.g. “shorter”.")
+                else:
+                    with st.spinner("Rewriting with your note…"):
+                        run(lambda r: controller(r).revise(d.id, ask))
+                    st.rerun()
         except ap.EditFormatError as e:
             st.error(str(e))
+        except RevisionLimit as e:
+            st.warning(str(e))
     with right:
         st.subheader("Cited sources")
         cited = set(d.cited_fact_ids or [])

@@ -148,3 +148,18 @@ class SendRow(Base):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     message_id: Mapped[str | None] = mapped_column(String(255))
     error: Mapped[str | None] = mapped_column(Text)
+
+
+class DraftRevision(Base):
+    """One rewrite a human asked for in words ("make it shorter"). `before` of revision 1 is the
+    writer's original, which the learning loop compares with the final approved text."""
+
+    __tablename__ = "draft_revisions"
+    __table_args__ = (UniqueConstraint("draft_id", "n"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    draft_id: Mapped[int] = mapped_column(ForeignKey("drafts.id"))
+    n: Mapped[int] = mapped_column(Integer)
+    instruction: Mapped[str] = mapped_column(Text)
+    before: Mapped[dict[str, Any]] = mapped_column(JSON)
+    after: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

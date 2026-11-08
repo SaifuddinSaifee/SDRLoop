@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import (
 from sdr_loop.db.schema import (
     Base,
     DecisionRow,
+    DraftRevision,
     DraftRow,
     EvalCase,
     FactRow,
@@ -400,6 +401,8 @@ class Repository:
                 ("sends", delete(SendRow).where(SendRow.lead_id == lead_id)),
                 ("eval_cases", delete(EvalCase).where(EvalCase.decision_id.in_(decision_ids))),
                 ("decisions", delete(DecisionRow).where(DecisionRow.draft_id.in_(draft_ids))),
+                ("draft_revisions",
+                 delete(DraftRevision).where(DraftRevision.draft_id.in_(draft_ids))),
                 ("drafts", delete(DraftRow).where(DraftRow.lead_id == lead_id)),
                 ("facts", delete(FactRow).where(FactRow.lead_id == lead_id)),
                 ("qualifications", delete(QualificationRow).where(
@@ -493,7 +496,16 @@ class Repository:
             async with self.session() as s:
                 await s.execute(update(EvalCase).values(decision_id=None))
                 await s.commit()
-        tables += [DecisionRow, DraftRow, FactRow, QualificationRow, LeadRow, WebhookEvent, Run]
+        tables += [
+            DecisionRow,
+            DraftRevision,
+            DraftRow,
+            FactRow,
+            QualificationRow,
+            LeadRow,
+            WebhookEvent,
+            Run,
+        ]
         counts: dict[str, int] = {}
         async with self.session() as s:
             for t in tables:
@@ -501,3 +513,24 @@ class Repository:
                 counts[t.__tablename__] = int(getattr(res, "rowcount", 0) or 0)
             await s.commit()
         return counts
+
+    # ------------------------------------------------------------- revisions (edit by instruction)
+
+    async def add_revision(
+        self, draft_id: int, instruction: str, before: dict[str, Any], after: dict[str, Any]
+    ) -> int:
+        async with self.session() as s:
+            q = select(DraftRevision.id).where(DraftRevision.draft_id == draft_id)
+            n = len((await s.execute(q)).all()) + 1
+            s.add(
+                DraftRevision(
+                    draft_id=draft_id, n=n, instruction=instruction, before=before, after=after
+                )
+            )
+            await s.commit()
+            return n
+
+    async def list_revisions(self, draft_id: int) -> list[DraftRevision]:
+        async with self.session() as s:
+            q = select(DraftRevision).where(DraftRevision.draft_id == draft_id)
+            return list((await s.execute(q.order_by(DraftRevision.n))).scalars())

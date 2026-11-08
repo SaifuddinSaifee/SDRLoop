@@ -78,11 +78,19 @@ def introduces_new_claims(original: str, final: str, facts: list[Fact]) -> bool:
 
 
 async def approve(repo: Repository, draft_id: int) -> int:
+    """Approve as shown. If the human got here by asking for revisions, it is recorded as an
+    edit: the gap between the writer's original and the approved text is the lesson."""
     d = await repo.get_draft_by_id(draft_id)
     seq = Sequence(email_1=Email(**d.email_1), email_2=Email(**d.email_2))
-    return await repo.record_decision(
-        draft_id, "approve", final_text=sequence_text(seq), edit_distance=0
-    )
+    final = sequence_text(seq)
+    revisions = await repo.list_revisions(draft_id)
+    if revisions:
+        first = Sequence.model_validate(revisions[0].before)
+        return await repo.record_decision(
+            draft_id, "edit", final_text=final,
+            edit_distance=edit_distance(sequence_text(first), final),
+        )  # fmt: skip
+    return await repo.record_decision(draft_id, "approve", final_text=final, edit_distance=0)
 
 
 async def edit(repo: Repository, draft_id: int, new_text: str, facts: list[Fact]) -> int:
@@ -105,9 +113,10 @@ async def reject(repo: Repository, draft_id: int, reason: str) -> int:
     return await repo.record_decision(draft_id, "reject", reason=reason)
 
 
-def review_text(lead: Lead, d: Any, facts: list[Fact]) -> str:
+def review_text(lead: Lead, d: Any, facts: list[Fact], revisions: int = 0) -> str:
     """Telegram message body for one draft."""
     flags = f"\n⚠️ Flagged: {d.flag_reason}" if d.flagged else ""
+    flags += f"\n🔁 revised ×{revisions}" if revisions else ""
     cs = d.critic_scores or {}
     s = cs.get("scores") or {}
     score = (

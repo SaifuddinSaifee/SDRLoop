@@ -9,6 +9,8 @@ Only TELEGRAM_CHAT_ID is ever answered (T15); everyone else is ignored and logge
 from __future__ import annotations
 
 import logging
+import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -19,11 +21,14 @@ from sdr_loop.models import Lead
 from sdr_loop.observability import get_tracer, lead_trace_seed, step_span
 from sdr_loop.steps import approve as ap
 from sdr_loop.steps.outbox import write_outbox
+from sdr_loop.steps.revise import RevisionLimit
+from sdr_loop.steps.revise import revise as revise_draft
 from sdr_loop.steps.send import schedule_sequence
 
 log = logging.getLogger(__name__)
 
 Button = tuple[str, str]  # (label, callback_data)
+_FULL_TEXT = re.compile(r"^\s*---\s*$", re.MULTILINE)  # a full rewrite has a --- line
 
 
 @dataclass
@@ -128,8 +133,10 @@ class BotController:
         if kind == "e":
             self._editing[str(chat_id)] = draft_id
             return Reply(
-                f"Reply with the new text for draft #{draft_id}: email 1, a line with only ---, "
-                "then email 2. An optional first line 'Subject: ...' sets each subject.",
+                f'Reply with what to change in draft #{draft_id}, e.g. "shorter, and lead with '
+                "their 14-day launch\", and I'll rewrite it.\n\nOr reply with the full text "
+                "yourself: email 1, a line with only ---, then email 2 (an optional first line "
+                "'Subject: ...' sets each subject).",
                 force_reply=True,
             )
         if kind == "r":
@@ -144,13 +151,29 @@ class BotController:
         log.warning("unknown callback %r", data)
         return None
 
-    async def on_text(self, chat_id: int | str, text: str) -> Reply | None:
+    async def on_text(
+        self,
+        chat_id: int | str,
+        text: str,
+        notify: Callable[[str], Awaitable[None]] | None = None,
+    ) -> Reply | None:
+        """`notify` posts an interim message (the rewrite takes a few seconds)."""
         if not self.authorised(chat_id):
             log.warning("ignored message from unauthorised chat %s", chat_id)
             return None
         draft_id = self._editing.get(str(chat_id))
         if draft_id is None:
             return Reply(_HELP)
+        if not _FULL_TEXT.search(text):  # no --- line: it's an instruction, not the new text
+            if notify is not None:
+                await notify(f'✏️ Rewriting draft #{draft_id}: "{text.strip()[:120]}"…')
+            try:
+                await self.revise(draft_id, text)
+            except RevisionLimit as e:
+                del self._editing[str(chat_id)]
+                return Reply(str(e))
+            del self._editing[str(chat_id)]
+            return await self.draft_reply(draft_id)
         try:
             await self.decide(draft_id, "edit", new_text=text)
         except ap.EditFormatError as e:
@@ -166,6 +189,21 @@ class BotController:
                 f"{s.followup_delay_minutes:g} min ({s.mailpit_ui_url or s.mailpit_url})."
             )
         return "Written to the outbox (dry run)."
+
+    async def revise(self, draft_id: int, instruction: str) -> int:
+        d = await self.repo.get_draft_by_id(draft_id)
+        if d.status != "pending_approval":
+            raise RevisionLimit(f"Draft #{draft_id} was already {d.status}.")
+        return await revise_draft(self.repo, draft_id, instruction)
+
+    async def draft_reply(self, draft_id: int) -> Reply:
+        """The draft as a review message with its three buttons (used after a rewrite)."""
+        d = await self.repo.get_draft_by_id(draft_id)
+        lead = await self.repo.get_lead(d.lead_id)
+        facts = await self.repo.get_facts(d.lead_id)
+        n = len(await self.repo.list_revisions(draft_id))
+        text = ap.review_text(_lead(lead), d, facts, revisions=n)
+        return Reply(text, [_main_buttons(draft_id)])
 
     # ------------------------------------------------------------------ decisions
 

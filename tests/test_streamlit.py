@@ -15,6 +15,7 @@ from sdr_loop.cli import app as cli
 from sdr_loop.config import get_settings
 from sdr_loop.jobs import Job, JobStore
 
+SAVED_SEARCH = "https://www.linkedin.com/sales/search/people?query=(saved)"
 APP = str(Path(__file__).resolve().parents[1] / "src/sdr_loop/ui/streamlit_app.py")
 
 
@@ -25,6 +26,13 @@ def seeded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("OUTBOX_PATH", str(tmp_path / "outbox.jsonl"))
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
     monkeypatch.setenv("STATE_DIR", str(tmp_path / "state"))
+    # The tests' own brief, with one saved search, so they never depend on the real campaign.yaml.
+    import yaml
+
+    brief = yaml.safe_load(Path("campaign.yaml").read_text())
+    brief["search_urls"] = [SAVED_SEARCH]
+    (tmp_path / "campaign.yaml").write_text(yaml.safe_dump(brief))
+    monkeypatch.setenv("CAMPAIGN_PATH", str(tmp_path / "campaign.yaml"))
     get_settings.cache_clear()
     res = CliRunner().invoke(cli, ["run", "--fixture", "--fake-llm", "--limit", "10"])
     assert res.exit_code == 0, res.output
@@ -110,7 +118,9 @@ def test_live_run_without_evaboot_key_is_refused(seeded: Path, tmp_path: Path) -
     next(r for r in t.radio if r.label == "Leads from").set_value(
         "Live Sales Navigator search (Evaboot)"
     )
-    t.text_input[0].set_value("https://www.linkedin.com/sales/search/people?x=1")
+    assert next(s for s in t.selectbox if s.label.startswith("Sales Navigator search")).value == (
+        SAVED_SEARCH
+    )
     next(b for b in t.button if "Start run" in b.label).click().run()
     assert any("Evaboot API key" in e.value for e in t.error)
     assert JobStore(tmp_path / "state").all() == []
@@ -215,3 +225,23 @@ def test_fresh_start_needs_confirmation_then_clears(wizard: Path, seeded: Path) 
     c = sqlite3.connect(seeded)
     assert c.execute("select count(*) from leads").fetchone()[0] == 0
     assert c.execute("select count(*) from drafts").fetchone()[0] == 0
+
+
+def test_rewrite_with_a_note_from_the_review_queue(seeded: Path) -> None:
+    from sdr_loop.demo import fake_gateway
+
+    llm.set_gateway(fake_gateway(get_settings()))
+    try:
+        t = at("Review queue")
+        before = t.text_area[0].value
+        next(b for b in t.button if "Rewrite" in b.label).click().run()
+        assert any("Say what to change" in w.value for w in t.warning)  # nothing asked yet
+        next(x for x in t.text_input if x.label.startswith("Or say what to change")).set_value(
+            "shorter"
+        )
+        next(b for b in t.button if "Rewrite" in b.label).click().run()
+        assert not t.exception, t.exception
+        assert any("Revision 1" in c.value and "shorter" in c.value for c in t.caption)
+        assert t.text_area[0].value != before
+    finally:
+        llm.set_gateway(None)

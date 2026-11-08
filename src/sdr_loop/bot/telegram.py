@@ -64,7 +64,13 @@ def build_application(
     async def on_message(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         if update.effective_chat is None or update.message is None or not update.message.text:
             return
-        reply = await controller.on_text(update.effective_chat.id, update.message.text)
+        chat = update.effective_chat
+
+        async def notify(text: str) -> None:
+            await chat.send_message(text)
+            await chat.send_action("typing")
+
+        reply = await controller.on_text(chat.id, update.message.text, notify=notify)
         if reply is not None:
             await update.message.reply_text(reply.text, reply_markup=_markup(reply))
 
