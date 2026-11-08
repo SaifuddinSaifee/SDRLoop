@@ -9,3 +9,4 @@ outbox.jsonl
 .pytest_cache/
 dist/
 data/
+.sdr-loop/

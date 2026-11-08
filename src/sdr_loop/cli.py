@@ -1,16 +1,26 @@
-"""sdr-loop command line: run | bot | api | prompts push."""
+"""sdr-loop command line.
+
+Day to day you only need `sdr-loop start`: it checks and fixes setup, runs the Telegram bot and the
+nightly learning cycle, and opens the control panel. The other commands are the same pieces, one
+at a time (scripts, Docker, debugging).
+"""
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import os
+import subprocess
+import sys
+import time as _time
+from datetime import datetime, time
 from pathlib import Path
 from typing import Annotated
 
 import httpx
 import typer
 
-from sdr_loop import llm
+from sdr_loop import health, llm
 from sdr_loop.config import Settings, get_settings
 from sdr_loop.demo import fake_gateway
 from sdr_loop.evaboot import EvabootClient
@@ -77,7 +87,10 @@ def _print_report(rep: RunReport, ext: ExtractReport | None) -> None:
     )
     pending = rep.counts.get("pending_approval", 0)
     if pending:
-        typer.echo(f"  {pending} draft(s) await approval: start `sdr-loop bot`.")
+        typer.echo(
+            f"  {pending} draft(s) await approval in the control panel and on Telegram "
+            "(while `sdr-loop start` is running)."
+        )
 
 
 @app.command()
@@ -154,19 +167,166 @@ async def _run(
         await repo.close()
 
 
-@app.command()
-def bot() -> None:
-    """Run the Telegram approval bot (polling)."""
+UI_APP = Path(__file__).parent / "ui" / "streamlit_app.py"
+ICONS = {"ok": "✅", "warn": "⚠️ ", "fail": "❌"}
+
+
+def _print_checks(prep: health.Prepared) -> None:
+    typer.echo("\nSetup")
+    for c in prep.checks:
+        typer.echo(f"  {ICONS[c.status]} {c.name}: {c.detail}")
+        if c.fix and c.status != "ok":
+            typer.echo(f"       fix: {c.fix}")
+    for a in prep.actions:
+        typer.secho(f"  🔧 {a}", fg=typer.colors.CYAN)
+
+
+def _learn_time(s: Settings) -> time | None:
+    """LEARN_AT (HH:MM) in this machine's local time zone; None when learning is off."""
+    if not s.learn_enabled:
+        return None
+    hh, mm = (int(x) for x in s.learn_at.split(":"))
+    return time(hh, mm, tzinfo=datetime.now().astimezone().tzinfo)
+
+
+def _run_bot(s: Settings) -> None:
     from sdr_loop.bot.controller import BotController
     from sdr_loop.bot.telegram import build_application
+    from sdr_loop.jobs import JobStore
 
+    init_tracer_from_settings()
+    repo = Repository(s.database_url)
+    controller = BotController(repo, s, JobStore(s.state_dir))
+    asyncio.set_event_loop(asyncio.new_event_loop())  # a fresh loop after earlier asyncio.run()s
+    build_application(controller, s.telegram_bot_token, learn_at=_learn_time(s)).run_polling()
+
+
+def _wait_for_chat(s: Settings, handle: str | None) -> Settings:
+    """Block until you message the bot, then save your chat id to .env."""
+    from sdr_loop.bot.setup import TelegramSetupError, find_chats
+    from sdr_loop.envfile import set_env_value
+
+    link = f"https://t.me/{(handle or '').lstrip('@')}"
+    typer.secho(
+        f"\n👉 Open {link} in Telegram, press Start and send 'hi'. Waiting… "
+        "(Ctrl-C to skip Telegram; the control panel keeps working.)",
+        fg=typer.colors.YELLOW,
+    )
+
+    async def find() -> str | None:
+        async with _telegram_client() as client:
+            try:
+                chats = await find_chats(client, s.telegram_bot_token)
+            except TelegramSetupError:
+                return None
+        return str(chats[0].chat_id) if chats else None
+
+    while (chat := asyncio.run(find())) is None:
+        _time.sleep(3)
+    set_env_value("TELEGRAM_CHAT_ID", chat)
+    os.environ["TELEGRAM_CHAT_ID"] = chat  # an empty env var would otherwise win over .env
+    typer.secho(f"  🔧 Found your chat ({chat}) and saved it to .env.", fg=typer.colors.CYAN)
+    get_settings.cache_clear()
+    return get_settings()
+
+
+def _spawn(argv: list[str]) -> subprocess.Popen[bytes]:
+    return subprocess.Popen(argv)  # noqa: S603  (fixed argv, no shell)
+
+
+@app.command()
+def start(
+    port: Annotated[int, typer.Option(help="Control panel port")] = 8501,
+    host: Annotated[str, typer.Option(help="Control panel address (0.0.0.0 in Docker)")] = (
+        "localhost"
+    ),
+    browser: Annotated[bool, typer.Option(help="Open the control panel in a browser")] = True,
+    webhook_api: Annotated[
+        bool, typer.Option("--api/--no-api", help="Also serve the Evaboot webhook if configured")
+    ] = True,
+) -> None:
+    """Start everything: setup checks, control panel, Telegram bot and nightly learning."""
+    _setup_logging()
+    s = get_settings()
+    if not s.dry_run:
+        raise _fail("DRY_RUN=false: v1 has no sending adapters. Refusing to start.")
+    prep = asyncio.run(health.prepare(s))
+    _print_checks(prep)
+    get_settings.cache_clear()
+    s = get_settings()  # prepare() may have saved the chat id
+
+    procs = [
+        _spawn(
+            [
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
+                str(UI_APP),
+                "--server.port",
+                str(port),
+                "--server.address",
+                host,
+                "--server.headless",
+                "false" if browser else "true",
+                "--browser.gatherUsageStats",
+                "false",
+            ]
+        )  # fmt: skip
+    ]
+    if (
+        webhook_api and s.public_webhook_url
+    ):  # live Evaboot runs can be pushed to us instead of polled
+        procs.append(_spawn([sys.executable, "-m", "sdr_loop.cli", "api"]))
+    typer.secho(f"\n🖥  Control panel: http://{host}:{port}", fg=typer.colors.GREEN, bold=True)
+    try:
+        tg = prep.get("telegram")
+        if tg.status == "fail" or not s.telegram_bot_token:
+            typer.echo("Telegram is off; review drafts in the control panel. Ctrl-C to stop.")
+            procs[0].wait()
+            return
+        if not s.telegram_chat_id:
+            s = _wait_for_chat(s, prep.bot_handle)
+        learn = _learn_time(s)
+        typer.secho(
+            "📱 Telegram bot is on: drafts arrive as they're ready; send /help to the bot."
+            + (f"\n🧠 Nightly learning at {s.learn_at}." if learn else "")
+            + "\nCtrl-C to stop.",
+            fg=typer.colors.GREEN,
+        )
+        _run_bot(s)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        for p in procs:
+            p.terminate()
+        for p in procs:
+            try:
+                p.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                p.kill()
+
+
+@app.command()
+def check() -> None:
+    """Check setup (models, Telegram, Langfuse, database) and fix what needs no human."""
+    _setup_logging()
+    prep = asyncio.run(health.prepare(get_settings()))
+    _print_checks(prep)
+    if any(c.status == "fail" for c in prep.checks):
+        raise typer.Exit(1)
+
+
+@app.command()
+def bot() -> None:
+    """Run only the Telegram bot (`sdr-loop start` runs it for you)."""
     _setup_logging()
     s = get_settings()
     if not (s.telegram_bot_token and s.telegram_chat_id):
-        raise _fail("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env.")
-    init_tracer_from_settings()
-    repo = Repository(s.database_url)
-    build_application(BotController(repo, s), s.telegram_bot_token).run_polling()
+        raise _fail(
+            "Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env (or run `sdr-loop start`)."
+        )
+    _run_bot(s)
 
 
 _TG_TIMEOUT_S = 15.0

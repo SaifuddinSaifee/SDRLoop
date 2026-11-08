@@ -83,53 +83,67 @@ Why these choices were made is in [`docs/decisions.md`](docs/decisions.md).
 Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uv sync --extra ui
-cp .env.example .env            # keys are only needed for real-model runs
-
-# 1. See the plumbing with NO keys (canned model outputs: not real quality)
-uv run sdr-loop run --fixture --fake-llm --limit 20
-uv run streamlit run app/streamlit_app.py     # review queue + KPIs
-
-# 2. Real models (TOGETHER_API_KEY and Langfuse keys in .env)
-uv run sdr-loop prompts push                  # seed Langfuse prompt management
-uv run sdr-loop run --fixture --limit 20
-uv run sdr-loop bot                           # drafts arrive on Telegram
-
-# 3. Live Evaboot (EVABOOT_API_KEY, PUBLIC_WEBHOOK_URL, and `sdr-loop api` reachable)
-uv run sdr-loop run "https://www.linkedin.com/sales/search/people?..."
+uv sync
+cp .env.example .env      # add the keys you have; everything else is optional
+uv run sdr-loop start
 ```
 
-Telegram setup (needed only for `sdr-loop bot`; Streamlit works without it):
+`sdr-loop start` is the only command you need day to day. It:
 
-1. In Telegram, message [@BotFather](https://t.me/BotFather), send `/newbot`, pick a name and a username
-   ending in `bot`, and paste the token into `.env` as `TELEGRAM_BOT_TOKEN`.
-2. Open your new bot in Telegram, press **Start**, and send it any message.
-3. Run `uv run sdr-loop telegram`. It prints your chat id; put it in `.env` as `TELEGRAM_CHAT_ID`.
-4. Run `uv run sdr-loop telegram` again: it sends a test message to your phone.
+1. **Checks your setup and fixes what it can.** It creates the local database, saves your Telegram
+   chat id as soon as you message the bot, and uploads any missing prompts to Langfuse. Anything it
+   can't fix is listed with the exact fix.
+2. **Opens the control panel** at http://localhost:8501:
+   - **Home:** start a run, watch its progress live, and see setup status.
+   - **Review queue:** each draft next to its cited sources, with Approve / Edit / Reject.
+   - **Learning:** run a learning cycle and see the promotion history.
+   - **KPIs.**
+3. **Runs the Telegram bot.** Drafts arrive on your phone within seconds of being written, and you
+   get a message when each run finishes. From the phone you can also send `/run 20`,
+   `/run <Sales Navigator URL> 20`, `/status` and `/learn`.
+4. **Runs the learning cycle every night** at `LEARN_AT` (default 02:00 local time).
 
-The bot only ever answers that one chat id. If a token leaks, send `/revoke` to @BotFather.
+Ctrl-C stops it. A run that is already going finishes on its own, and a crashed run can be resumed.
 
-Docker (Postgres + migrations + webhook API + bot):
+What each key unlocks (the Home page shows which ones are working):
+
+| `.env` | Without it | With it |
+|---|---|---|
+| `TOGETHER_API_KEY` | demo runs only (canned AI output, tick "Demo mode") | real qualify / research / write / critic |
+| `TELEGRAM_BOT_TOKEN` | review in the control panel | review on your phone too |
+| `LANGFUSE_*` | no traces | one trace per lead, scores, prompt versions |
+| `EVABOOT_API_KEY` | runs on the recorded export only | runs on a live Sales Navigator search |
+
+Telegram setup: in Telegram, message [@BotFather](https://t.me/BotFather), send `/newbot`, pick a
+name and a username ending in `bot`, and put the token in `.env` as `TELEGRAM_BOT_TOKEN`. Then run
+`sdr-loop start` and press **Start** in your bot when it asks. The chat id is saved for you. The
+bot only ever answers that one chat. If a token leaks, send `/revoke` to @BotFather.
+
+Docker (Postgres + migrations + control panel + bot + webhook API):
 
 ```bash
-docker compose up -d --build                         # needs TELEGRAM_* in .env for the bot
-docker compose run --rm cli run --fixture --fake-llm # or without --fake-llm for real models
+docker compose up -d --build     # control panel on http://localhost:8501
 ```
 
 Postgres is published on `127.0.0.1:55432` for dev tools; the API on `${API_PORT:-8000}`.
 
+The individual commands below are what `start` and the control panel use. They're useful in
+scripts, Docker and debugging:
+
 | Command | What it does |
 |---|---|
+| `sdr-loop start` | everything above |
+| `sdr-loop check` | setup checks and automatic fixes only (exit 1 if something is broken) |
 | `sdr-loop run [URL] [--fixture] [--fake-llm] [--limit N] [--resume RUN_ID]` | extract → qualify → research → write → critic |
+| `sdr-loop bot` | only the Telegram bot |
 | `sdr-loop telegram` | check the bot token, find your chat id, send a test message |
-| `sdr-loop bot` | Telegram approval bot (Approve / Edit / Reject, daily reminder) |
 | `sdr-loop api` | Evaboot webhook receiver (`POST /webhooks/evaboot/{secret}/{run_id}`) |
 | `sdr-loop learn` | one learning cycle (needs ≥ 10 new edits/rejections) |
 | `sdr-loop purge --lead <id or LinkedIn URL>` | delete the lead, derived data, outbox lines and trace |
-| `sdr-loop prompts push` | seed Langfuse with the local prompt files |
+| `sdr-loop prompts push` | upload the local prompt files to Langfuse as new `production` versions |
 
 Configuration is environment variables (see `.env.example`): budgets (`PER_LEAD_USD_CAP`, `PER_RUN_USD_CAP`,
-`MAX_TOOL_CALLS`), `CONCURRENCY`, `LEARN_ENABLED`, `PINNED_PROMPTS`, `OFFLINE`. The ICP lives in
+`MAX_TOOL_CALLS`), `CONCURRENCY`, `LEARN_ENABLED`, `LEARN_AT`, `PINNED_PROMPTS`, `OFFLINE`. The ICP lives in
 [`icp.yaml`](icp.yaml); reuse the agent for another product by editing that file.
 
 ## Observability
@@ -183,14 +197,15 @@ numbers or names the draft and facts did not contain are recorded as ungrounded 
 | Cost per qualified lead | < $0.05 | canned demo only; prices in `config.py` come from Together's table (cached-input discounts ignored) |
 | p95 time per lead | < 60 s | not measured with real models |
 
-The Streamlit KPI page and `sdr_loop.kpis` compute these per prompt version from the database.
+The control panel's KPI page and `sdr_loop.kpis` compute these per prompt version from the database.
 
 ## Layout
 
 ```
 src/sdr_loop/  cli, pipeline, llm (the only model gateway), budget, observability, memory (DB),
-               steps/ (extract qualify research write critic approve outbox), tools/, learn/, bot/, api/
-app/           Streamlit review queue + KPI page      evals/   golden set + real-model evals
+               steps/ (extract qualify research write critic approve outbox), tools/, learn/, bot/, api/,
+               ui/ (control panel), jobs (background runs), health (setup checks)
+evals/         golden set + real-model evals
 prompts/       seed prompts (also the offline fallback) alembic/ migrations     infra/ Dockerfile
 docs/          PRD, decisions.md, journal.md          CLAUDE.md   rules for agent-written changes
 ```

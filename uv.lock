@@ -1927,14 +1927,10 @@ dependencies = [
     { name = "rapidfuzz" },
     { name = "selectolax" },
     { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "streamlit" },
     { name = "tenacity" },
     { name = "typer" },
     { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-ui = [
-    { name = "streamlit" },
 ]
 
 [package.dev-dependencies]
@@ -1962,12 +1958,11 @@ requires-dist = [
     { name = "rapidfuzz", specifier = ">=3.9" },
     { name = "selectolax", specifier = ">=0.3.21" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.30" },
-    { name = "streamlit", marker = "extra == 'ui'", specifier = ">=1.40" },
+    { name = "streamlit", specifier = ">=1.40" },
     { name = "tenacity", specifier = ">=8.3" },
     { name = "typer", specifier = ">=0.12" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]
-provides-extras = ["ui"]
 
 [package.metadata.requires-dev]
 dev = [

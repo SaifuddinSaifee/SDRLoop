@@ -103,15 +103,22 @@ class Pipeline:
         await self.repo.set_run_status(run_id, "running")
         ids = (await self.repo.runnable_lead_ids(run_id))[:limit]
         sem = asyncio.Semaphore(self.settings.concurrency)
+        done = 0
+        log.info("run %s: processing %d leads", run_id, len(ids))
 
         async def one(lead_id: int) -> LeadOutcome:
+            nonlocal done
             async with sem:
                 if self._run_exhausted:  # stop cleanly: don't start new leads
                     await self.repo.set_lead_progress(
                         lead_id, status="budget_exceeded", reason="run budget exhausted"
                     )
-                    return LeadOutcome(lead_id, "budget_exceeded", error="run budget exhausted")
-                return await self.process_lead(lead_id, run_id)
+                    out = LeadOutcome(lead_id, "budget_exceeded", error="run budget exhausted")
+                else:
+                    out = await self.process_lead(lead_id, run_id)
+            done += 1  # progress line the web app turns into a progress bar (ids only, no PII)
+            log.info("lead %d/%d done: lead %s %s", done, len(ids), lead_id, out.status)
+            return out
 
         outcomes = await asyncio.gather(*(one(i) for i in ids))
         status = "budget_exceeded" if self._run_exhausted else "completed"

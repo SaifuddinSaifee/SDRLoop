@@ -129,11 +129,26 @@ def get_prompt(name: str, label: str = "production") -> PromptVersion:
         return get_local(name)
 
 
-def push_local_prompts() -> list[str]:
+PIPELINE_PROMPTS = ("qualify", "research", "writer", "critic")
+
+
+def missing_prompts(lf: Any | None = None) -> list[str]:
+    """Pipeline prompts with no `production` version in Langfuse (local files are used instead)."""
+    lf = lf or langfuse_client()
+    missing = []
+    for name in PIPELINE_PROMPTS:
+        try:
+            lf.get_prompt(name, label="production", type="text", max_retries=0, cache_ttl_seconds=0)
+        except Exception:
+            missing.append(name)
+    return missing
+
+
+def push_local_prompts(names: tuple[str, ...] | list[str] = PIPELINE_PROMPTS) -> list[str]:
     """Seed Langfuse with the latest local file of each prompt, labelled `production`."""
     lf = langfuse_client()
     pushed = []
-    for name in ("qualify", "research", "writer", "critic"):
+    for name in names:
         pv = get_local(name)
         lf.create_prompt(name=name, prompt=pv.text, labels=["production"], type="text")
         pushed.append(pv.ref)

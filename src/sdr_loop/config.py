@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite+aiosqlite:///./sdr_loop.db"
     outbox_path: str = "outbox.jsonl"
+    state_dir: str = ".sdr-loop"  # background job records and logs
+    learn_at: str = "02:00"  # local time of the nightly learning cycle (`sdr-loop start`)
 
     dry_run: bool = True
     learn_enabled: bool = True

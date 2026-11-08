@@ -21,6 +21,7 @@ dependencies = [
   "rapidfuzz>=3.9",
   "selectolax>=0.3.21",
   "defusedxml>=0.7.1",
+  "streamlit>=1.40",
 ]
 
 [dependency-groups]
@@ -34,11 +35,6 @@ dev = [
 
 [project.scripts]
 sdr-loop = "sdr_loop.cli:app"
-
-[project.optional-dependencies]
-ui = [
-    "streamlit>=1.40",
-]
 
 [build-system]
 requires = ["hatchling"]

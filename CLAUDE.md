@@ -16,4 +16,4 @@ Spec: `docs/PRD.md`. Decisions: `docs/decisions.md`. Daily log: `docs/journal.md
 ## Commands
 - `uv run pytest` (unit/integration), `uv run pytest -m eval` (real models)
 - `uv run ruff check . && uv run ruff format --check . && uv run mypy`
-- `uv run sdr-loop run --fixture`
+- `uv run sdr-loop start` (control panel + bot + nightly learn), `uv run sdr-loop run --fixture`

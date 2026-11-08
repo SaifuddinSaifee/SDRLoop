@@ -89,3 +89,11 @@ def test_langfuse_base_url_alias_is_honoured(monkeypatch: pytest.MonkeyPatch) ->
     assert Settings(_env_file=None).langfuse_host == "https://jp.cloud.langfuse.com"  # type: ignore[call-arg]
     monkeypatch.setenv("LANGFUSE_HOST", "https://us.cloud.langfuse.com")
     assert Settings(_env_file=None).langfuse_host == "https://us.cloud.langfuse.com"  # type: ignore[call-arg]
+
+
+def test_check_reports_each_integration_and_fails_without_models(cli_env: Path) -> None:
+    res = runner.invoke(app, ["check"])
+    assert res.exit_code == 1  # no TOGETHER_API_KEY is a hard failure
+    for name in ("Database", "Together AI", "Telegram", "Langfuse", "Evaboot"):
+        assert name in res.output
+    assert "fix:" in res.output

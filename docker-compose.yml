@@ -1,7 +1,6 @@
-# Local stack: Postgres + migrations + webhook API + Telegram bot.
-#   docker compose up -d --build
-#   docker compose run --rm cli run --fixture            # real models (needs keys in .env)
-#   docker compose run --rm cli run --fixture --fake-llm # canned demo, no keys
+# Local stack: Postgres + migrations + webhook API + control panel/Telegram bot (`sdr-loop start`).
+#   docker compose up -d --build        # then open http://localhost:8501
+#   docker compose run --rm cli run --fixture --fake-llm # one-off CLI run, no keys
 name: sdrloop
 
 x-app: &app
@@ -53,10 +52,17 @@ services:
       - "${API_PORT:-8000}:8000"
     restart: unless-stopped
 
-  bot:
+  app:
     <<: *app
-    command: ["bot"]
-    restart: on-failure:3   # a missing TELEGRAM_* exits 1; don't crash-loop forever
+    # Control panel + Telegram bot + nightly learning. Put TELEGRAM_CHAT_ID in .env for Docker:
+    # a chat id discovered inside the container is not written back to your .env.
+    command: ["start", "--host", "0.0.0.0", "--no-browser", "--no-api"]
+    environment:
+      <<: *env
+      STATE_DIR: /data/state
+    ports:
+      - "127.0.0.1:${UI_PORT:-8501}:8501"
+    restart: unless-stopped
 
   cli:
     <<: *app
