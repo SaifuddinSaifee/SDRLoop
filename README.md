@@ -99,6 +99,16 @@ uv run sdr-loop bot                           # drafts arrive on Telegram
 uv run sdr-loop run "https://www.linkedin.com/sales/search/people?..."
 ```
 
+Telegram setup (needed only for `sdr-loop bot`; Streamlit works without it):
+
+1. In Telegram, message [@BotFather](https://t.me/BotFather), send `/newbot`, pick a name and a username
+   ending in `bot`, and paste the token into `.env` as `TELEGRAM_BOT_TOKEN`.
+2. Open your new bot in Telegram, press **Start**, and send it any message.
+3. Run `uv run sdr-loop telegram`. It prints your chat id; put it in `.env` as `TELEGRAM_CHAT_ID`.
+4. Run `uv run sdr-loop telegram` again: it sends a test message to your phone.
+
+The bot only ever answers that one chat id. If a token leaks, send `/revoke` to @BotFather.
+
 Docker (Postgres + migrations + webhook API + bot):
 
 ```bash
@@ -111,6 +121,7 @@ Postgres is published on `127.0.0.1:55432` for dev tools; the API on `${API_PORT
 | Command | What it does |
 |---|---|
 | `sdr-loop run [URL] [--fixture] [--fake-llm] [--limit N] [--resume RUN_ID]` | extract → qualify → research → write → critic |
+| `sdr-loop telegram` | check the bot token, find your chat id, send a test message |
 | `sdr-loop bot` | Telegram approval bot (Approve / Edit / Reject, daily reminder) |
 | `sdr-loop api` | Evaboot webhook receiver (`POST /webhooks/evaboot/{secret}/{run_id}`) |
 | `sdr-loop learn` | one learning cycle (needs ≥ 10 new edits/rejections) |

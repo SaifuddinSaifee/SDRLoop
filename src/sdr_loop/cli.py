@@ -169,6 +169,54 @@ def bot() -> None:
     build_application(BotController(repo, s), s.telegram_bot_token).run_polling()
 
 
+_TG_TIMEOUT_S = 15.0
+
+
+def _telegram_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(timeout=_TG_TIMEOUT_S)
+
+
+@app.command()
+def telegram() -> None:
+    """Check the Telegram bot: validate the token, find your chat id, send a test message."""
+    from sdr_loop.bot.setup import TelegramSetupError, find_chats, get_me, send_test
+
+    _setup_logging()
+    s = get_settings()
+    if not s.telegram_bot_token:
+        raise _fail(
+            "TELEGRAM_BOT_TOKEN is empty. In Telegram, message @BotFather, send /newbot, "
+            "and paste the token it gives you into .env."
+        )
+
+    async def go() -> None:
+        async with _telegram_client() as client:
+            me = await get_me(client, s.telegram_bot_token)
+            typer.echo(f"Token OK: your bot is {me}")
+            if s.telegram_chat_id:
+                await send_test(client, s.telegram_bot_token, s.telegram_chat_id)
+                typer.echo(f"Test message sent to chat {s.telegram_chat_id}. Check your phone.")
+                return
+            chats = await find_chats(client, s.telegram_bot_token)
+            if not chats:
+                handle = me.lstrip("@")
+                raise _fail(
+                    f"No messages found yet. Open https://t.me/{handle} in Telegram, press Start, "
+                    "send 'hi', then run this command again."
+                )
+            for c in chats:
+                typer.echo(f"  chat id {c.chat_id}: {c.label}")
+            typer.echo(
+                f"\nAdd this line to .env, then run this command again to test it:\n"
+                f"TELEGRAM_CHAT_ID={chats[0].chat_id}"
+            )
+
+    try:
+        asyncio.run(go())
+    except TelegramSetupError as e:
+        raise _fail(str(e)) from None
+
+
 @app.command()
 def api(host: str = "0.0.0.0", port: int = 8000) -> None:  # noqa: S104
     """Run the Evaboot webhook receiver."""
