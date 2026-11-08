@@ -1,24 +1,18 @@
-# evaboot-sdr-loop
+# SDR Loop
 
-A self-improving SDR agent. It takes a LinkedIn Sales Navigator search, gets clean leads through the
-[Evaboot API](https://docs.evaboot.com), qualifies them against an ICP, researches each fit lead,
-writes a two-email sequence where **every personal claim cites a fact the agent actually read**, and
-sends it to a human for approval on Telegram. Every edit or rejection becomes a test case. The agent
-changes its own writer prompt only when a challenger version beats the champion on those tests, and it
-can never promote a version that cites a fact that does not exist.
+**Paste a Sales Navigator search, approve emails from your phone.** SDR Loop finds the people who
+fit, gets their verified emails through [Evaboot](https://docs.evaboot.com), reads their company's
+website, and writes each one a short email and follow-up. It only says things it can back up with a
+quote, and nothing goes out until you tap Approve. Every edit you make teaches it to write better
+the next time.
 
-Dry run by default: nothing is ever sent. Full spec: [`docs/PRD.md`](docs/PRD.md).
+**Why it exists.** It started as an internal tool to take outbound off a busy CEO's plate. Writing
+the emails was the part I knew how to build. Finding the right people and getting real emails for
+them was the hard part, and that's what Evaboot does. Telegram is the first chat app; Slack is next.
 
-## Status: read this first
-
-| | |
-|---|---|
-| Built and tested | Whole pipeline, approval flow, learn loop, purge, KPI queries, Streamlit pages. 139 tests; the suite also passes against Postgres. |
-| **Not yet run with real services** | The Together AI provider and its GLM models, Langfuse, the Telegram bot against Telegram, the Evaboot API. Tests use scripted fake models and recorded fixtures; the first real run may surface integration bugs. |
-| **No quality numbers yet** | The KPI table below is a template. Precision, recall, faithfulness on real models, and before/after promotion numbers need real keys and ~50 human reviews. |
-| Not built | AWS deployment, Instantly/Gmail adapters, simulated-reply feed, qualify-prompt learning, Langfuse datasets, Evaboot MCP. |
-| Fixture is synthetic | `fixtures/evaboot_export.csv` is generated (`scripts/make_fixture.py`) to look like an Evaboot export. Only a few column names are documented by Evaboot; map a real export in `EVABOOT_COLUMNS` ([`steps/extract.py`](src/sdr_loop/steps/extract.py)). |
-| Golden labels are drafts | `evals/golden_leads.jsonl` is labelled by archetype, not by hand. Review it before trusting precision/recall. |
+**Nothing reaches a real person.** Approved emails go to a local test inbox
+([Mailpit](https://mailpit.axllent.org)), and the code refuses any other mail server. Full spec:
+[`docs/PRD.md`](docs/PRD.md).
 
 ## How it works
 
@@ -207,7 +201,7 @@ and are appended to the same trace.
 ## Evals and CI
 
 ```bash
-uv run pytest                  # 139 tests: mocked models, CSV fixtures, no network
+uv run pytest                  # 241 tests: mocked models, CSV fixtures, no network
 uv run pytest -m eval          # real models on the golden set (needs TOGETHER_API_KEY)
 TEST_DATABASE_URL=postgresql+asyncpg://sdr:sdr@127.0.0.1:55432/sdr uv run pytest   # same suite on Postgres
 uv run python -m evals.critic_agreement export   # then fill in your scores, then `compare`
@@ -235,15 +229,16 @@ Every cycle writes a `prompt_promotions` row with before/after numbers and the r
 a prompt (`PINNED_PROMPTS=writer`) or switch the loop off (`LEARN_ENABLED=false`). Human edits that add
 numbers or names the draft and facts did not contain are recorded as ungrounded and never used as targets.
 
-## KPIs (template: not yet measured)
+## KPIs (mostly not yet measured)
 
 | KPI | Target | Measured |
 |---|---|---|
 | ICP precision / recall (golden set) | ≥ 85% / ≥ 80% | not run |
-| Faithfulness | 100% | not run on real models |
+| Faithfulness (golden set) | 100% | not run on real models |
+| Critic pass rate | | 10 of 12 drafts (one demo run, writer and critic v3) |
 | Approval rate without edits | rises after each promotion | not run |
 | Average edit distance | falls after each promotion | not run |
-| Cost per qualified lead | < $0.05 | canned demo only; prices in `config.py` come from Together's table (cached-input discounts ignored) |
+| Cost per qualified lead | < $0.05 | $0.0066 (one demo run); prices in `config.py` come from Together's table (cached-input discounts ignored) |
 | p95 time per lead | < 60 s | not measured with real models |
 
 The control panel's KPI page and `sdr_loop.kpis` compute these per prompt version from the database.
@@ -258,3 +253,15 @@ evals/         golden set + real-model evals
 prompts/       seed prompts (also the offline fallback) alembic/ migrations     infra/ Dockerfile
 docs/          PRD, decisions.md, journal.md          CLAUDE.md   rules for agent-written changes
 ```
+
+## Status
+
+| | |
+|---|---|
+| Built and tested | The whole pipeline, approval on Telegram and the web (including edit by instruction), the learning loop, demo email delivery, the setup wizard, purge, KPIs. 241 tests; the suite also passes against Postgres. |
+| Run with real services | Together AI models, live website and news research, Telegram, Langfuse, Mailpit. On the demo search: 26 leads, 12 drafts, 10 passed the critic, about $0.007 per qualified lead. |
+| Evaboot extraction is simulated | No Sales Navigator seat or credits yet. A local stand-in speaks Evaboot's documented API and returns real companies with fictional people. Switching to the real API is one setting (Setup → Real leads → Live). |
+| No learning results yet | The loop needs at least 10 human edits or rejections before it tries a new prompt, so no promotion has run on real reviews. Precision and recall need hand-checked golden labels. |
+| Fixture is synthetic | `fixtures/evaboot_export.csv` is generated (`scripts/make_fixture.py`) to look like an Evaboot export. Map a real export in `EVABOOT_COLUMNS` ([`steps/extract.py`](src/sdr_loop/steps/extract.py)). |
+| Golden labels are drafts | `evals/golden_leads.jsonl` is labelled by archetype, not by hand. Review it before trusting precision/recall. |
+| Not built | Sending to real inboxes, Slack, AWS deployment, simulated-reply feed, qualify-prompt learning, Langfuse datasets, Evaboot MCP. |
